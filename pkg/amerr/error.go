@@ -8,6 +8,9 @@ import (
 const (
 	ErrBadRequest = 400
 
+	ErrNotFound           = 404
+	ErrWebServiceNotFound = 4041
+
 	ErrConflict             = 409
 	ErrDuplicatedWebService = 4091
 
@@ -24,6 +27,13 @@ var (
 		),
 		ErrConflict: newErrorWithLanguage(
 			newError(http.StatusConflict, ErrConflict, "중복된 요청입니다."),
+		),
+
+		ErrNotFound: newErrorWithLanguage(
+			newError(http.StatusNotFound, ErrNotFound, "해당 요청을 찾을 수 없습니다."),
+		),
+		ErrWebServiceNotFound: newErrorWithLanguage(
+			newError(http.StatusNotFound, ErrWebServiceNotFound, "해당 웹서비스를 찾을 수 없습니다."),
 		),
 
 		ErrDuplicatedWebService: newErrorWithLanguage(

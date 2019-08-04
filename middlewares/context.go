@@ -18,7 +18,7 @@ type Context interface {
 	GetTx() (rsdb.Transaction, error)
 	Language() string
 	QueryParamInt64(name string, defaultInt int64) (int64, error)
-	ParamInt64(name string, defaultValue int64) (int64, error)
+	ParamInt64(name string) (int64, error)
 }
 
 type context struct {
@@ -65,9 +65,9 @@ func (c *context) QueryParamInt64(name string, defaultValue int64) (int64, error
 	return c.stringToInt64WithDefault(rawQueryParam, defaultValue)
 }
 
-func (c *context) ParamInt64(name string, defaultValue int64) (int64, error) {
+func (c *context) ParamInt64(name string) (int64, error) {
 	rawParam := c.Param(name)
-	return c.stringToInt64WithDefault(rawParam, defaultValue)
+	return c.stringToInt64WithDefault(rawParam, 0)
 }
 
 func (c *context) stringToInt64WithDefault(value string, defaultValue int64) (int64, error) {

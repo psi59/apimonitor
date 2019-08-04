@@ -7,3 +7,8 @@ Content-Type: application/json
 }
 
 ###
+
+GET {{apiAddr}}/{{apiVersion}}/webservices/{{web_service_id}}
+Content-Type: application/json
+
+###

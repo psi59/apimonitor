@@ -218,3 +218,100 @@ func TestNewWebServiceService(t *testing.T) {
 		})
 	}
 }
+
+func TestWebServiceServiceImpl_GetWebServiceById(t *testing.T) {
+	testutils.MonkeyAll()
+
+	mockTx := &mocks2.Transaction{}
+
+	webServiceWithId := &models.WebService{Id: 1}
+	webService := models.WebService{
+		DefaultValidateChecker: models.ValidatedDefaultValidateChecker,
+		Id:                     1,
+		Host:                   "realsangil.github.io",
+		HttpSchema:             "https",
+		Desc:                   "sangil's dev blog",
+		Favicon:                "",
+		Created:                time.Now(),
+		LastModified:           time.Now(),
+	}
+
+	type args struct {
+		transaction rsdb.Transaction
+		webService  *models.WebService
+	}
+	tests := []struct {
+		name     string
+		args     args
+		mockFunc webServiceMockFunc
+		wantErr  *amerr.ErrorWithLanguage
+	}{
+		{
+			name: "pass",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				mockWebServiceRepository.On("GetById", mockTx, webServiceWithId).Run(func(args mock.Arguments) {
+					arg := args.Get(1).(*models.WebService)
+					*arg = webService
+				}).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "web service not found",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				mockWebServiceRepository.On("GetById", mockTx, webServiceWithId).Return(rsdb.ErrRecordNotFound)
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound),
+		},
+		{
+			name: "repository unexpected error",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				mockWebServiceRepository.On("GetById", mockTx, webServiceWithId).Return(rserrors.ErrUnexpected)
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "invalid parameter",
+			args: args{
+				transaction: mockTx,
+				webService:  nil,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "invalid parameter",
+			args: args{
+				transaction: nil,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockWebServiceRepository := &mocks.WebServiceRepository{}
+			service := &WebServiceServiceImpl{
+				webServiceRepository: mockWebServiceRepository,
+			}
+			tt.mockFunc(mockWebServiceRepository)
+			gotErr := service.GetWebServiceById(tt.args.transaction, tt.args.webService)
+			assert.Equal(t, tt.wantErr, gotErr)
+		})
+	}
+}

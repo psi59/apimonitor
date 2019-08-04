@@ -468,20 +468,20 @@ func (_m *Context) Param(name string) string {
 	return r0
 }
 
-// ParamInt64 provides a mock function with given fields: name, defaultValue
-func (_m *Context) ParamInt64(name string, defaultValue int64) (int64, error) {
-	ret := _m.Called(name, defaultValue)
+// ParamInt64 provides a mock function with given fields: name
+func (_m *Context) ParamInt64(name string) (int64, error) {
+	ret := _m.Called(name)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, int64) int64); ok {
-		r0 = rf(name, defaultValue)
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(name)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(name, defaultValue)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(name)
 	} else {
 		r1 = ret.Error(1)
 	}
