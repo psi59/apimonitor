@@ -1,0 +1,9 @@
+POST {{apiAddr}}/{{apiVersion}}/webservices
+Content-Type: application/json
+
+{
+  "host": "http://vidoc.lalaworks.com",
+  "desc": "test api"
+}
+
+###

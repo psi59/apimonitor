@@ -1,0 +1,13 @@
+environment: 'development'
+db:
+  host: '127.0.0.1'
+  port: 4306
+  username: 'root'
+  password: '1234'
+  name: 'apimonitor'
+  verbose: true
+logger:
+  level: 'debug'
+  format: 'text'
+  output: 'console'
+  path: ''
