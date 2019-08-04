@@ -13,6 +13,7 @@ import (
 var regexExtractHost = regexp.MustCompile(`^(?:(?:(https?)?(?:\:?\/\/))|(?:\/\/))?(((?:\w{1,100}\.)?\w{2,300}\.\w{2,100})(\.\w{2,100})*)`)
 
 type WebService struct {
+	DefaultValidateChecker
 	Id           int64     `json:"id" gorm:"private_key"`
 	Host         string    `json:"host" gorm:"unique"`
 	HttpSchema   string    `json:"http_schema" gorm:"Size:20;Default:'http'"`
@@ -20,11 +21,6 @@ type WebService struct {
 	Favicon      string    `json:"favicon" gorm:"Type:Text"`
 	Created      time.Time `json:"created"`
 	LastModified time.Time `json:"last_modified"`
-	isValidated  bool      `gorm:"-"`
-}
-
-func (webService *WebService) IsValidated() bool {
-	return webService.isValidated
 }
 
 func (webService *WebService) Validate() error {

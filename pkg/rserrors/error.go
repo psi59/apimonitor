@@ -2,6 +2,7 @@ package rserrors
 
 const (
 	ErrInvalidParameter Error = "invalid parameter"
+	ErrUnexpected       Error = "unexpected error"
 )
 
 type Error string

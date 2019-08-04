@@ -26,14 +26,14 @@ func (service *WebServiceServiceImpl) CreateWebService(transaction rsdb.Transact
 	webService, err := models.NewWebService(request)
 	if err != nil {
 		rslog.Error(err)
-		return nil, amerr.GetErrorsFromCode(amerr.ErrInternalServer)
+		return nil, amerr.GetErrorsFromCode(amerr.ErrBadRequest)
 	}
 
 	if err := service.webServiceRepository.Create(transaction, webService); err != nil {
 		rslog.Error(err)
 		switch err {
 		case rsdb.ErrInvalidData:
-			return nil, amerr.GetErrorsFromCode(amerr.ErrInternalServer)
+			return nil, amerr.GetErrorsFromCode(amerr.ErrBadRequest)
 		case rsdb.ErrDuplicateData:
 			return nil, amerr.GetErrorsFromCode(amerr.ErrDuplicatedWebService)
 		}

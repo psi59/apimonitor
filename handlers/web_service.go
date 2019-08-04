@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/lalaworks/jiranfamily-server/pkg/lalavalid"
 	"github.com/pkg/errors"
 
 	"github.com/realsangil/apimonitor/middlewares"
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/amerr"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rslog"
+	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/services"
 )
 
@@ -31,11 +32,13 @@ func (handler *WebServiceHandlerImpl) CreateWebService(c echo.Context) error {
 	lang := ctx.Language()
 	tx, err := ctx.GetTx()
 	if err != nil {
+		rslog.Error(err)
 		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
 	}
 
 	var request models.WebServiceRequest
 	if err := ctx.Bind(&request); err != nil {
+		rslog.Error(err)
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 	webService, aerr := handler.webServiceService.CreateWebService(tx, request)
@@ -47,7 +50,7 @@ func (handler *WebServiceHandlerImpl) CreateWebService(c echo.Context) error {
 }
 
 func NewWebServiceHandler(webServiceService services.WebServiceService) (WebServiceHandler, error) {
-	if lalavalid.IsZero(webServiceService) {
+	if rsvalid.IsZero(webServiceService) {
 		return nil, rserrors.ErrInvalidParameter
 	}
 	return &WebServiceHandlerImpl{
