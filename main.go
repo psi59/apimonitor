@@ -61,6 +61,7 @@ func main() {
 		{
 			v1WebService.POST("", webServiceHandler.CreateWebService, txMiddleware.Tx)
 			v1WebService.GET(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.GetWebServiceById, txMiddleware.Tx)
+			v1WebService.DELETE(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.DeleteWebServiceById, txMiddleware.Tx)
 		}
 	}
 

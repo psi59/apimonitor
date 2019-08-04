@@ -272,3 +272,84 @@ func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 		})
 	}
 }
+
+func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
+	testutils.MonkeyAll()
+
+	mockTx := &mocks3.Transaction{}
+
+	tests := []struct {
+		name     string
+		mockFunc webServiceHandlerMockFunc
+		wantErr  error
+	}{
+		{
+			name: "pass",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				webService := &models.WebService{
+					Id:           1,
+					Host:         "realsangil.github.io",
+					HttpSchema:   "https",
+					Desc:         "sangil's dev blog",
+					Favicon:      "",
+					Created:      time.Now(),
+					LastModified: time.Now(),
+				}
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
+
+				mockWebServiceService.On("DeleteWebServiceById", mockTx, &models.WebService{Id: 1}).Run(func(args mock.Arguments) {
+					arg := args.Get(1).(*models.WebService)
+					*arg = *webService
+				}).Return(nil)
+
+				mockContext.On("JSON", http.StatusOK, webService).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "transaction error",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(nil, rserrors.ErrUnexpected)
+				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
+			},
+			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
+		},
+		{
+			name: "invalid webServiceId",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(0), rserrors.ErrUnexpected)
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang),
+		},
+		{
+			name: "unexpected Service error",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("ParamInt64", "web_service_id").Return(int64(1), nil)
+
+				mockWebServiceService.On("DeleteWebServiceById", mockTx, &models.WebService{Id: 1}).Return(amerr.GetErrInternalServer())
+			},
+			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockContext := &mocks2.Context{}
+			mockWebServiceService := &mocks.WebServiceService{}
+
+			handler := &WebServiceHandlerImpl{
+				webServiceService: mockWebServiceService,
+			}
+
+			tt.mockFunc(mockContext, mockWebServiceService)
+			err := handler.DeleteWebServiceById(mockContext)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}

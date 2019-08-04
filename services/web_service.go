@@ -13,6 +13,7 @@ import (
 type WebServiceService interface {
 	CreateWebService(transaction rsdb.Transaction, request models.WebServiceRequest) (*models.WebService, *amerr.ErrorWithLanguage)
 	GetWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage
+	DeleteWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage
 }
 
 type WebServiceServiceImpl struct {
@@ -50,6 +51,27 @@ func (service *WebServiceServiceImpl) GetWebServiceById(transaction rsdb.Transac
 	}
 
 	if err := service.webServiceRepository.GetById(transaction, webService); err != nil {
+		switch err {
+		case rsdb.ErrRecordNotFound:
+			return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound)
+		}
+		rslog.Error(err)
+		return amerr.GetErrInternalServer()
+	}
+
+	return nil
+}
+
+func (service *WebServiceServiceImpl) DeleteWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage {
+	if rsvalid.IsZero(transaction, webService) {
+		return amerr.GetErrorsFromCode(amerr.ErrInternalServer)
+	}
+
+	if err := service.GetWebServiceById(transaction, webService); err != nil {
+		return err
+	}
+
+	if err := service.webServiceRepository.DeleteById(transaction, webService); err != nil {
 		switch err {
 		case rsdb.ErrRecordNotFound:
 			return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound)

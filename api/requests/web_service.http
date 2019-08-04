@@ -1,3 +1,4 @@
+# 웹서비스 생성
 POST {{apiAddr}}/{{apiVersion}}/webservices
 Content-Type: application/json
 
@@ -8,7 +9,14 @@ Content-Type: application/json
 
 ###
 
+# 웹서비스 조회
 GET {{apiAddr}}/{{apiVersion}}/webservices/{{web_service_id}}
+Content-Type: application/json
+
+###
+
+# 웹서비스 삭제
+DELETE {{apiAddr}}/{{apiVersion}}/webservices/{{web_service_id}}
 Content-Type: application/json
 
 ###

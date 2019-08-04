@@ -22,6 +22,7 @@ const (
 type WebServiceHandler interface {
 	CreateWebService(c echo.Context) error
 	GetWebServiceById(c echo.Context) error
+	DeleteWebServiceById(c echo.Context) error
 }
 
 type WebServiceHandlerImpl struct {
@@ -75,6 +76,33 @@ func (handler *WebServiceHandlerImpl) GetWebServiceById(c echo.Context) error {
 
 	webService := &models.WebService{Id: webServiceId}
 	if err := handler.webServiceService.GetWebServiceById(tx, webService); err != nil {
+		return err.GetErrFromLanguage(lang)
+	}
+
+	return ctx.JSON(http.StatusOK, webService)
+}
+
+func (handler *WebServiceHandlerImpl) DeleteWebServiceById(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lang := ctx.Language()
+	tx, err := ctx.GetTx()
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
+	}
+
+	webServiceId, err := ctx.ParamInt64(WebServiceIdParam)
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang)
+	}
+
+	webService := &models.WebService{Id: webServiceId}
+	if err := handler.webServiceService.DeleteWebServiceById(tx, webService); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 

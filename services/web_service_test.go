@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"bou.ke/monkey"
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/amerr"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
@@ -311,6 +312,113 @@ func TestWebServiceServiceImpl_GetWebServiceById(t *testing.T) {
 			}
 			tt.mockFunc(mockWebServiceRepository)
 			gotErr := service.GetWebServiceById(tt.args.transaction, tt.args.webService)
+			assert.Equal(t, tt.wantErr, gotErr)
+		})
+	}
+}
+
+func TestWebServiceServiceImpl_DeleteWebServiceById(t *testing.T) {
+	testutils.MonkeyAll()
+
+	mockTx := &mocks2.Transaction{}
+	webServiceWithId := &models.WebService{Id: 1}
+	webService := &models.WebService{
+		Id:           1,
+		Host:         "realsangil.github.io",
+		HttpSchema:   "https",
+		Desc:         "sangil's dev blog",
+		Favicon:      "",
+		Created:      time.Now(),
+		LastModified: time.Now(),
+	}
+
+	WebServiceServiceGetWebServiceById := func(webService *models.WebService, err *amerr.ErrorWithLanguage) {
+		monkey.UnpatchInstanceMethod(reflect.TypeOf(&WebServiceServiceImpl{}), "GetWebServiceById")
+		monkey.PatchInstanceMethod(reflect.TypeOf(&WebServiceServiceImpl{}), "GetWebServiceById", func(service *WebServiceServiceImpl, transaction rsdb.Transaction, ws *models.WebService) *amerr.ErrorWithLanguage {
+			*ws = *webService
+			return err
+		})
+	}
+
+	type args struct {
+		transaction rsdb.Transaction
+		webService  *models.WebService
+	}
+	tests := []struct {
+		name     string
+		args     args
+		mockFunc webServiceMockFunc
+		wantErr  *amerr.ErrorWithLanguage
+	}{
+		{
+			name: "pass",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				WebServiceServiceGetWebServiceById(webService, nil)
+				mockWebServiceRepository.On("DeleteById", mockTx, webService).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "[WebServiceService.GetWebServiceById] webService not found",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				WebServiceServiceGetWebServiceById(webService, amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound))
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound),
+		},
+		{
+			name: "[WebServiceService.GetWebServiceById] unexpected error",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				WebServiceServiceGetWebServiceById(webService, amerr.GetErrInternalServer())
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "[WebServiceRepository.DeleteById] webService not found",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				WebServiceServiceGetWebServiceById(webService, nil)
+				mockWebServiceRepository.On("DeleteById", mockTx, webService).Return(rsdb.ErrRecordNotFound)
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound),
+		},
+		{
+			name: "[WebServiceRepository.DeleteById] unexpected error",
+			args: args{
+				transaction: mockTx,
+				webService:  webServiceWithId,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				WebServiceServiceGetWebServiceById(webService, nil)
+				mockWebServiceRepository.On("DeleteById", mockTx, webService).Return(rserrors.ErrUnexpected)
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockWebServiceRepository := &mocks.WebServiceRepository{}
+
+			service := &WebServiceServiceImpl{
+				webServiceRepository: mockWebServiceRepository,
+			}
+
+			tt.mockFunc(mockWebServiceRepository)
+			gotErr := service.DeleteWebServiceById(tt.args.transaction, tt.args.webService)
 			assert.Equal(t, tt.wantErr, gotErr)
 		})
 	}
