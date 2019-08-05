@@ -31,7 +31,7 @@ type Repository interface {
 	GetById(tx Transaction, id rsmodel.ValidatedObject) error
 	Save(tx Transaction, src rsmodel.ValidatedObject) error
 	Patch(tx Transaction, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error
-	List(tx Transaction, items interface{}, filter ListFilter) (totalCount int, err error)
+	List(tx Transaction, items interface{}, filter ListFilter, orders Orders) (totalCount int, err error)
 	CreateTable(tx Transaction) error
 }
 
@@ -53,35 +53,6 @@ func checkItems(items interface{}) error {
 		return srcTypeErr
 	}
 	return nil
-}
-
-func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter ListFilter) (totalCount int, err error) {
-	if e := checkItems(items); e != nil {
-		err = errors.WithStack(e)
-		return
-	}
-
-	wheres := make([]string, 0)
-	whereValues := make([]interface{}, 0)
-
-	for k, v := range filter.Conditions {
-		wheres = append(wheres, fmt.Sprintf("%s=?", k))
-		whereValues = append(whereValues, v)
-	}
-
-	query := tx.Tx().Where(strings.Join(wheres, " AND "), whereValues...)
-
-	if e := query.Model(items).Count(&totalCount).Error; e != nil {
-		err = HandleSQLError(e)
-		return
-	}
-
-	if e := query.Offset(filter.NumItem * (filter.Page - 1)).Limit(filter.NumItem).Find(items).Error; e != nil {
-		err = HandleSQLError(e)
-		return
-	}
-
-	return
 }
 
 func (repo *DefaultRepository) Patch(tx Transaction, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error {
@@ -127,6 +98,35 @@ func (repo *DefaultRepository) FirstOrCreate(tx Transaction, src rsmodel.Validat
 	return nil
 }
 
+func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter ListFilter, orders Orders) (totalCount int, err error) {
+	if e := checkItems(items); e != nil {
+		err = errors.WithStack(e)
+		return
+	}
+
+	query := tx.Tx()
+
+	if filter.Conditions != nil {
+		query = query.Where(filter.Conditions)
+	}
+
+	if e := query.Model(items).Count(&totalCount).Error; e != nil {
+		err = HandleSQLError(e)
+		return
+	}
+
+	if orders != nil {
+		query = query.Order(orders.String())
+	}
+
+	if e := query.Offset(filter.NumItem * (filter.Page - 1)).Limit(filter.NumItem).Find(items).Error; e != nil {
+		err = HandleSQLError(e)
+		return
+	}
+
+	return
+}
+
 func NewDefaultRepository() Repository {
 	return &DefaultRepository{}
 }
@@ -155,93 +155,20 @@ func HandleSQLError(err error) error {
 	return err
 }
 
-type FieldCondition struct {
-	Key   string
-	Value interface{}
-}
-
-type FilterConditions map[string]interface{}
-
 type ListFilter struct {
 	Page       int
 	NumItem    int
-	Conditions FilterConditions
-	Order      *Order
+	Conditions map[string]interface{}
 }
 
-func NewListFilter(page, numItem int, order *Order, condtions ...FieldCondition) ListFilter {
-	filterConditions := make(FilterConditions)
-	for _, cond := range condtions {
-		filterConditions[cond.Key] = cond.Value
+type Orders []Order
+
+func (orders Orders) String() string {
+	ordersStringArray := make([]string, 0)
+	for _, o := range orders {
+		ordersStringArray = append(ordersStringArray, o.String())
 	}
-	return ListFilter{
-		Page:       page,
-		NumItem:    numItem,
-		Conditions: filterConditions,
-		Order:      order,
-	}
-}
-
-type sqlWhereCondition struct {
-	where    string
-	operator string
-}
-
-type SQLWheres interface {
-	AndCondition(where string, value ...interface{})
-	OrCondition(where string, value ...interface{})
-	Query() string
-	QueryValues() []interface{}
-}
-
-type SQLWheresImpl struct {
-	queryConditions string
-	queryValues     []interface{}
-}
-
-func (w *SQLWheresImpl) addConditions(condition string, operator string) {
-	if w.queryConditions == "" {
-		w.queryConditions = condition
-		return
-	}
-
-	w.queryConditions = strings.Join([]string{
-		w.queryConditions,
-		condition,
-	}, operator)
-}
-
-func (w *SQLWheresImpl) addValues(values ...interface{}) {
-	for _, value := range values {
-		if value != nil {
-			w.queryValues = append(w.queryValues, value)
-		}
-	}
-}
-
-func (w *SQLWheresImpl) AndCondition(where string, value ...interface{}) {
-	w.addConditions(where, " AND ")
-	w.addValues(value...)
-}
-
-func (w *SQLWheresImpl) OrCondition(where string, value ...interface{}) {
-	w.addConditions(where, " OR ")
-	w.addValues(value...)
-}
-
-func (w *SQLWheresImpl) Query() string {
-	return w.queryConditions
-}
-
-func (w *SQLWheresImpl) QueryValues() []interface{} {
-	return w.queryValues
-}
-
-func NewAndWheres() SQLWheres {
-	return &SQLWheresImpl{
-		queryConditions: "",
-		queryValues:     make([]interface{}, 0),
-	}
+	return strings.Join(ordersStringArray, ", ")
 }
 
 type Order struct {
@@ -249,7 +176,7 @@ type Order struct {
 	IsASC bool
 }
 
-func (o *Order) OrderBy() string {
+func (o Order) String() string {
 	if o.IsASC {
 		return fmt.Sprintf("%s ASC", o.Field)
 	} else {

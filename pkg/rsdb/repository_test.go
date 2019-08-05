@@ -437,61 +437,87 @@ func TestDefaultRepository_Patch(t *testing.T) {
 
 func TestDefaultRepository_List(t *testing.T) {
 	type args struct {
-		src         interface{}
-		filter      ListFilter
-		expectQuery func(mock sqlmock.Sqlmock)
+		src    interface{}
+		filter ListFilter
+		orders Orders
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    int
-		wantErr error
+		name        string
+		args        args
+		expectQuery func(mock sqlmock.Sqlmock)
+		want        int
+		wantErr     error
 	}{
 		{
 			name: "pass",
 			args: args{
-				src:    &[]MockModel{},
-				filter: NewListFilter(1, 20, nil, FieldCondition{"site_id", 1}),
-				expectQuery: func(mock sqlmock.Sqlmock) {
-					countRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(1)
-					mock.ExpectQuery("SELECT count").WithArgs(1).WillReturnRows(countRows)
-
-					rows := sqlmock.NewRows([]string{"id", "from"}).AddRow(1, 2)
-					mock.ExpectQuery("SELECT").WithArgs(1).WillReturnRows(rows)
+				src: &[]MockModel{},
+				filter: ListFilter{
+					Page:    1,
+					NumItem: 20,
+					Conditions: map[string]interface{}{
+						"site_id": 1,
+					},
 				},
+			},
+			expectQuery: func(mock sqlmock.Sqlmock) {
+				countRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(1)
+				mock.ExpectQuery("SELECT count").WithArgs(1).WillReturnRows(countRows)
+
+				rows := sqlmock.NewRows([]string{"id", "from"}).AddRow(1, 2)
+				mock.ExpectQuery("SELECT").WithArgs(1).WillReturnRows(rows)
 			},
 			want: 1,
 		},
 		{
 			name: "src not pointer",
 			args: args{
-				src:    []MockModel{},
-				filter: NewListFilter(1, 20, nil, FieldCondition{"site_id", 1}),
-				expectQuery: func(mock sqlmock.Sqlmock) {
+				src: []MockModel{},
+				filter: ListFilter{
+					Page:    1,
+					NumItem: 20,
+					Conditions: map[string]interface{}{
+						"site_id": 1,
+					},
 				},
+			},
+			want: 0,
+			expectQuery: func(mock sqlmock.Sqlmock) {
 			},
 			wantErr: ErrInvalidData,
 		},
 		{
 			name: "src not array or slice",
 			args: args{
-				src:    &MockModel{},
-				filter: NewListFilter(1, 20, nil, FieldCondition{"site_id", 1}),
-				expectQuery: func(mock sqlmock.Sqlmock) {
+				src: &MockModel{},
+				filter: ListFilter{
+					Page:    1,
+					NumItem: 20,
+					Conditions: map[string]interface{}{
+						"site_id": 1,
+					},
 				},
+			},
+			expectQuery: func(mock sqlmock.Sqlmock) {
 			},
 			wantErr: ErrInvalidData,
 		},
 		{
 			name: "unexpected sql error",
 			args: args{
-				src:    &[]MockModel{},
-				filter: NewListFilter(1, 20, nil, FieldCondition{"site_id", 1}),
-				expectQuery: func(mock sqlmock.Sqlmock) {
-					countRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(0)
-					mock.ExpectQuery("SELECT count").WithArgs(1).WillReturnRows(countRows)
-					mock.ExpectQuery("SELECT").WithArgs(1).WillReturnError(fmt.Errorf("sql error"))
+				src: &[]MockModel{},
+				filter: ListFilter{
+					Page:    1,
+					NumItem: 20,
+					Conditions: map[string]interface{}{
+						"site_id": 1,
+					},
 				},
+			},
+			expectQuery: func(mock sqlmock.Sqlmock) {
+				countRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(0)
+				mock.ExpectQuery("SELECT count").WithArgs(1).WillReturnRows(countRows)
+				mock.ExpectQuery("SELECT").WithArgs(1).WillReturnError(fmt.Errorf("sql error"))
 			},
 			wantErr: fmt.Errorf("sql error"),
 		},
@@ -505,12 +531,12 @@ func TestDefaultRepository_List(t *testing.T) {
 			defer gormDB.Close()
 			defer assertMockDatabase(t, mock)
 
-			tt.args.expectQuery(mock)
+			tt.expectQuery(mock)
 
 			tx := NewTransaction(gormDB)
 
 			repo := &DefaultRepository{}
-			got, gotErr := repo.List(tx, tt.args.src, tt.args.filter)
+			got, gotErr := repo.List(tx, tt.args.src, tt.args.filter, tt.args.orders)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, errors.Cause(gotErr))
 		})
