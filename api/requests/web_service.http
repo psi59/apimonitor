@@ -4,19 +4,32 @@ Content-Type: application/json
 
 {
   "host": "http://vidoc.lalaworks.com",
-  "desc": "test api"
+  "desc": "test api",
+  "favicon": ""
 }
 
 ###
 
 # 웹서비스 조회
-GET {{apiAddr}}/{{apiVersion}}/webservices/{{web_service_id}}
+GET {{apiAddr}}/{{apiVersion}}/webservices/{{WebServiceId}}
 Content-Type: application/json
 
 ###
 
 # 웹서비스 삭제
-DELETE {{apiAddr}}/{{apiVersion}}/webservices/{{web_service_id}}
+DELETE {{apiAddr}}/{{apiVersion}}/webservices/{{WebServiceId}}
 Content-Type: application/json
+
+###
+
+# 웹서비스 수정
+PUT {{apiAddr}}/{{apiVersion}}/webservices/{{WebServiceId}}
+Content-Type: application/json
+
+{
+  "host": "https://realsangil.github.io",
+  "desc": "sangil's blog",
+  "favicon": "www.lalaworks.com/favicon.png"
+}
 
 ###

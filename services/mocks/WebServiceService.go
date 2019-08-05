@@ -68,3 +68,19 @@ func (_m *WebServiceService) GetWebServiceById(transaction rsdb.Transaction, web
 
 	return r0
 }
+
+// UpdateWebServiceById provides a mock function with given fields: transaction, webService, request
+func (_m *WebServiceService) UpdateWebServiceById(transaction rsdb.Transaction, webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage {
+	ret := _m.Called(transaction, webService, request)
+
+	var r0 *amerr.ErrorWithLanguage
+	if rf, ok := ret.Get(0).(func(rsdb.Transaction, *models.WebService, models.WebServiceRequest) *amerr.ErrorWithLanguage); ok {
+		r0 = rf(transaction, webService, request)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*amerr.ErrorWithLanguage)
+		}
+	}
+
+	return r0
+}

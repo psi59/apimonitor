@@ -34,18 +34,28 @@ func (webService *WebService) Validate() error {
 	return nil
 }
 
-func NewWebService(request WebServiceRequest) (*WebService, error) {
-	if !regexExtractHost.MatchString(request.Host) {
-		return nil, rserrors.ErrInvalidParameter
+func (webService *WebService) UpdateFromRequest(request WebServiceRequest) error {
+	host, err := hostRegexpFindStringSubmatch(request.Host)
+	if err != nil {
+		return errors.WithStack(err)
 	}
-	host := regexExtractHost.FindStringSubmatch(request.Host)
+
+	webService.Host = host[2]
+	webService.HttpSchema = host[1]
+	webService.Desc = request.Desc
+	webService.Favicon = request.Favicon
+	webService.LastModified = time.Now()
+
+	return nil
+}
+
+func NewWebService(request WebServiceRequest) (*WebService, error) {
 	webService := &WebService{
-		Host:         host[2],
-		HttpSchema:   host[1],
-		Desc:         request.Desc,
-		Favicon:      request.Favicon,
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		Created: time.Now(),
+	}
+
+	if err := webService.UpdateFromRequest(request); err != nil {
+		return nil, errors.WithStack(err)
 	}
 
 	if err := webService.Validate(); err != nil {
@@ -53,6 +63,13 @@ func NewWebService(request WebServiceRequest) (*WebService, error) {
 	}
 
 	return webService, nil
+}
+
+func hostRegexpFindStringSubmatch(host string) ([]string, error) {
+	if !regexExtractHost.MatchString(host) {
+		return nil, rserrors.ErrInvalidParameter
+	}
+	return regexExtractHost.FindStringSubmatch(host), nil
 }
 
 type WebServiceRequest struct {
