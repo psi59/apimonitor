@@ -24,6 +24,7 @@ type WebServiceHandler interface {
 	GetWebServiceById(c echo.Context) error
 	DeleteWebServiceById(c echo.Context) error
 	UpdateWebServiceById(c echo.Context) error
+	GetWebServiceList(c echo.Context) error
 }
 
 type WebServiceHandlerImpl struct {
@@ -141,6 +142,42 @@ func (handler *WebServiceHandlerImpl) UpdateWebServiceById(c echo.Context) error
 	}
 
 	return ctx.JSON(http.StatusOK, webService)
+}
+
+func (handler *WebServiceHandlerImpl) GetWebServiceList(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lang := ctx.Language()
+	tx, err := ctx.GetTx()
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
+	}
+
+	page, err := ctx.QueryParamInt64("page", 1)
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
+	}
+
+	numItem, err := ctx.QueryParamInt64("num_item", 20)
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
+	}
+
+	list, aerr := handler.webServiceService.GetWebServiceList(tx, models.WebServiceListRequest{
+		Page:    int(page),
+		NumItem: int(numItem),
+	})
+	if aerr != nil {
+		return aerr.GetErrFromLanguage(lang)
+	}
+
+	return ctx.JSON(http.StatusOK, list)
 }
 
 func NewWebServiceHandler(webServiceService services.WebServiceService) (WebServiceHandler, error) {

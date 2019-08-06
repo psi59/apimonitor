@@ -98,10 +98,9 @@ func (repo *DefaultRepository) FirstOrCreate(tx Transaction, src rsmodel.Validat
 	return nil
 }
 
-func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter ListFilter, orders Orders) (totalCount int, err error) {
+func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter ListFilter, orders Orders) (int, error) {
 	if e := checkItems(items); e != nil {
-		err = errors.WithStack(e)
-		return
+		return 0, errors.WithStack(e)
 	}
 
 	query := tx.Tx()
@@ -110,9 +109,9 @@ func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter Li
 		query = query.Where(filter.Conditions)
 	}
 
+	var totalCount int
 	if e := query.Model(items).Count(&totalCount).Error; e != nil {
-		err = HandleSQLError(e)
-		return
+		return 0, HandleSQLError(e)
 	}
 
 	if orders != nil {
@@ -120,11 +119,10 @@ func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter Li
 	}
 
 	if e := query.Offset(filter.NumItem * (filter.Page - 1)).Limit(filter.NumItem).Find(items).Error; e != nil {
-		err = HandleSQLError(e)
-		return
+		return 0, HandleSQLError(e)
 	}
 
-	return
+	return totalCount, nil
 }
 
 func NewDefaultRepository() Repository {

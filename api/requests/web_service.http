@@ -3,10 +3,16 @@ POST {{apiAddr}}/{{apiVersion}}/webservices
 Content-Type: application/json
 
 {
-  "host": "http://vidoc.lalaworks.com",
+  "host": "http://admin.lalaworks.com",
   "desc": "test api",
   "favicon": ""
 }
+
+###
+
+# 웹서비스 리스트 조회
+GET {{apiAddr}}/{{apiVersion}}/webservices
+Content-Type: application/json
 
 ###
 

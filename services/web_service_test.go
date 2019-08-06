@@ -11,6 +11,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	mocks2 "github.com/realsangil/apimonitor/pkg/rsdb/mocks"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rsmodel"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 	"github.com/realsangil/apimonitor/repositories"
 	"github.com/realsangil/apimonitor/repositories/mocks"
@@ -572,6 +573,127 @@ func TestWebServiceServiceImpl_UpdateWebServiceById(t *testing.T) {
 			tt.mockFunc(mockWebServiceRepository)
 			err := service.UpdateWebServiceById(tt.args.transaction, tt.args.webService, tt.args.request)
 			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestWebServiceServiceImpl_GetWebServiceList(t *testing.T) {
+	testutils.MonkeyAll()
+
+	mockTx := &mocks2.Transaction{}
+
+	request := models.WebServiceListRequest{
+		Page:          1,
+		NumItem:       20,
+		SearchKeyword: "",
+	}
+
+	paginatedList := []*models.WebService{
+		{
+			Id:           1,
+			Host:         "realsangil.github.io",
+			HttpSchema:   "https",
+			Desc:         "sangil's dev blog",
+			Favicon:      "",
+			Created:      time.Now(),
+			LastModified: time.Now(),
+		},
+	}
+
+	type args struct {
+		transaction rsdb.Transaction
+		request     models.WebServiceListRequest
+	}
+	tests := []struct {
+		name     string
+		args     args
+		mockFunc webServiceMockFunc
+		want     *rsmodel.PaginatedList
+		wantErr  *amerr.ErrorWithLanguage
+	}{
+		{
+			name: "pass",
+			args: args{
+				transaction: mockTx,
+				request:     request,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				mockWebServiceRepository.On(
+					"List",
+					mockTx,
+					&[]*models.WebService{},
+					rsdb.ListFilter{
+						NumItem:    20,
+						Page:       1,
+						Conditions: map[string]interface{}{},
+					}, rsdb.Orders{
+						rsdb.Order{
+							Field: "host",
+							IsASC: true,
+						},
+					}).Run(func(args mock.Arguments) {
+					arg := args.Get(1).(*[]*models.WebService)
+					*arg = paginatedList
+				}).Return(1, nil)
+			},
+			want: &rsmodel.PaginatedList{
+				CurrentPage: 1,
+				TotalCount:  1,
+				NumItem:     20,
+				Items:       paginatedList,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "[WebServiceService.List] unexpected error",
+			args: args{
+				transaction: mockTx,
+				request:     request,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+				mockWebServiceRepository.On(
+					"List",
+					mockTx,
+					&[]*models.WebService{},
+					rsdb.ListFilter{
+						NumItem:    20,
+						Page:       1,
+						Conditions: map[string]interface{}{},
+					}, rsdb.Orders{
+						rsdb.Order{
+							Field: "host",
+							IsASC: true,
+						},
+					}).Return(0, rserrors.ErrUnexpected)
+			},
+			want:    nil,
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "invalid parameter",
+			args: args{
+				transaction: nil,
+				request:     request,
+			},
+			mockFunc: func(mockWebServiceRepository *mocks.WebServiceRepository) {
+			},
+			want:    nil,
+			wantErr: amerr.GetErrInternalServer(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockWebServiceRepository := &mocks.WebServiceRepository{}
+
+			service := &WebServiceServiceImpl{
+				webServiceRepository: mockWebServiceRepository,
+			}
+
+			tt.mockFunc(mockWebServiceRepository)
+
+			got, err := service.GetWebServiceList(tt.args.transaction, tt.args.request)
+			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

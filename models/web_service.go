@@ -77,3 +77,9 @@ type WebServiceRequest struct {
 	Desc    string `json:"desc"`
 	Favicon string `json:"favicon"`
 }
+
+type WebServiceListRequest struct {
+	Page          int
+	NumItem       int
+	SearchKeyword string
+}

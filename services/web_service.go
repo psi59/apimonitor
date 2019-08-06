@@ -6,6 +6,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
+	"github.com/realsangil/apimonitor/pkg/rsmodel"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
@@ -15,6 +16,7 @@ type WebServiceService interface {
 	GetWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage
 	DeleteWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage
 	UpdateWebServiceById(transaction rsdb.Transaction, webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage
+	GetWebServiceList(transaction rsdb.Transaction, request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type WebServiceServiceImpl struct {
@@ -108,6 +110,36 @@ func (service *WebServiceServiceImpl) UpdateWebServiceById(transaction rsdb.Tran
 	}
 
 	return nil
+}
+
+func (service *WebServiceServiceImpl) GetWebServiceList(transaction rsdb.Transaction, request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
+	if rsvalid.IsZero(transaction, request) {
+		return nil, amerr.GetErrorsFromCode(amerr.ErrInternalServer)
+	}
+
+	items := make([]*models.WebService, 0)
+	totalCount, err := service.webServiceRepository.List(transaction, &items, rsdb.ListFilter{
+		Page:       request.Page,
+		NumItem:    request.NumItem,
+		Conditions: map[string]interface{}{},
+	}, rsdb.Orders{
+		{
+			Field: "host",
+			IsASC: true,
+		},
+	})
+
+	if err != nil {
+		rslog.Error(err)
+		return nil, amerr.GetErrInternalServer()
+	}
+
+	return &rsmodel.PaginatedList{
+		TotalCount:  totalCount,
+		CurrentPage: request.Page,
+		NumItem:     request.NumItem,
+		Items:       items,
+	}, nil
 }
 
 func NewWebServiceService(webServiceRepository repositories.WebServiceRepository) (WebServiceService, error) {

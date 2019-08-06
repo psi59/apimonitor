@@ -558,7 +558,7 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 			args: args{
 				expectQuery: func(mock sqlmock.Sqlmock) {
 					// rows := sqlmock.NewRows([]string{"id", "count"})
-					// mock.ExpectBegin()
+					mock.ExpectBegin()
 					mock.ExpectQuery("SELECT").WithArgs(1).WillReturnError(gorm.ErrRecordNotFound)
 					mock.ExpectExec(`INSERT`).WithArgs(1, 2).WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.ExpectCommit()

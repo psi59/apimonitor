@@ -12,6 +12,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/amerr"
 	mocks3 "github.com/realsangil/apimonitor/pkg/rsdb/mocks"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rsmodel"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 	"github.com/realsangil/apimonitor/services"
 	"github.com/realsangil/apimonitor/services/mocks"
@@ -455,6 +456,109 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 
 			tt.mockFunc(mockContext, mockWebServiceService)
 			err := handler.UpdateWebServiceById(mockContext)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
+	testutils.MonkeyAll()
+
+	paginatedList := &rsmodel.PaginatedList{
+		CurrentPage: 1,
+		NumItem:     20,
+		TotalCount:  1,
+		Items: &[]*models.WebService{
+			{
+				Id:           1,
+				Host:         "realsangil.github.io",
+				HttpSchema:   "https",
+				Desc:         "sangil's dev blog",
+				Favicon:      "",
+				Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+		},
+	}
+
+	mockTx := &mocks3.Transaction{}
+
+	tests := []struct {
+		name     string
+		mockFunc webServiceHandlerMockFunc
+		wantErr  error
+	}{
+		{
+			name: "pass",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(1), nil)
+				mockContext.On("QueryParamInt64", "num_item", int64(20)).Return(int64(20), nil)
+
+				mockWebServiceService.On("GetWebServiceList", mockTx, models.WebServiceListRequest{
+					Page:    1,
+					NumItem: 20,
+				}).Return(paginatedList, nil)
+
+				mockContext.On("JSON", http.StatusOK, paginatedList).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "invalid transaction",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(nil, amerr.GetErrInternalServer().GetErrFromLanguage(lang))
+			},
+			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
+		},
+		{
+			name: "invalid page",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(0), rserrors.ErrUnexpected)
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang),
+		},
+		{
+			name: "invalid num_item",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(1), nil)
+				mockContext.On("QueryParamInt64", "num_item", int64(20)).Return(int64(0), rserrors.ErrUnexpected)
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang),
+		},
+		{
+			name: "[WebServiceService.GetWebServiceList] unexpected error",
+			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
+				mockContext.On("Language").Return(lang)
+				mockContext.On("GetTx").Return(mockTx, nil)
+				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(1), nil)
+				mockContext.On("QueryParamInt64", "num_item", int64(20)).Return(int64(20), nil)
+
+				mockWebServiceService.On("GetWebServiceList", mockTx, models.WebServiceListRequest{
+					Page:    1,
+					NumItem: 20,
+				}).Return(nil, amerr.GetErrInternalServer())
+			},
+			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockContext := &mocks2.Context{}
+			mockWebServiceService := &mocks.WebServiceService{}
+
+			handler := &WebServiceHandlerImpl{
+				webServiceService: mockWebServiceService,
+			}
+
+			tt.mockFunc(mockContext, mockWebServiceService)
+			err := handler.GetWebServiceList(mockContext)
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
