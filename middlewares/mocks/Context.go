@@ -209,15 +209,15 @@ func (_m *Context) Get(key string) interface{} {
 }
 
 // GetTx provides a mock function with given fields:
-func (_m *Context) GetTx() (rsdb.Transaction, error) {
+func (_m *Context) GetTx() (rsdb.Connection, error) {
 	ret := _m.Called()
 
-	var r0 rsdb.Transaction
-	if rf, ok := ret.Get(0).(func() rsdb.Transaction); ok {
+	var r0 rsdb.Connection
+	if rf, ok := ret.Get(0).(func() rsdb.Connection); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(rsdb.Transaction)
+			r0 = ret.Get(0).(rsdb.Connection)
 		}
 	}
 
@@ -741,11 +741,11 @@ func (_m *Context) SetRequest(r *http.Request) {
 }
 
 // SetTx provides a mock function with given fields: transaction
-func (_m *Context) SetTx(transaction rsdb.Transaction) error {
+func (_m *Context) SetTx(transaction rsdb.Connection) error {
 	ret := _m.Called(transaction)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection) error); ok {
 		r0 = rf(transaction)
 	} else {
 		r0 = ret.Error(0)

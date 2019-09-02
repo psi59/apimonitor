@@ -15,21 +15,28 @@ var (
 	conn *defaultConnection
 )
 
+func GetConnection() Connection {
+	return conn
+}
+
 type Connection interface {
-	Begin() (Transaction, error)
+	Begin() (Connection, error)
 	Close() error
+	Rollback() error
+	Commit() error
+	Conn() *gorm.DB
 }
 
 type defaultConnection struct {
 	db *gorm.DB
 }
 
-func (conn *defaultConnection) Begin() (Transaction, error) {
+func (conn *defaultConnection) Begin() (Connection, error) {
 	if conn.db == nil {
 		return nil, errors.New("connection is nil")
 	}
 	tx := conn.db.Begin().Set("gorm:table_options", "ENGINE=InnoDB charset=utf8mb4")
-	return &defaultTransaction{tx: tx}, nil
+	return &defaultConnection{db: tx}, nil
 }
 
 func (conn *defaultConnection) Close() error {
@@ -39,34 +46,20 @@ func (conn *defaultConnection) Close() error {
 	return conn.db.Close()
 }
 
-func GetConnection() Connection {
-	return conn
+func (conn *defaultConnection) Rollback() error {
+	return conn.Conn().Rollback().Error
 }
 
-type Transaction interface {
-	Rollback() error
-	Commit() error
-	Tx() *gorm.DB
+func (conn *defaultConnection) Commit() error {
+	return conn.Conn().Commit().Error
 }
 
-type defaultTransaction struct {
-	tx *gorm.DB
+func (conn *defaultConnection) Conn() *gorm.DB {
+	return conn.db
 }
 
-func (t *defaultTransaction) Rollback() error {
-	return t.Tx().Rollback().Error
-}
-
-func (t *defaultTransaction) Commit() error {
-	return t.Tx().Commit().Error
-}
-
-func (t *defaultTransaction) Tx() *gorm.DB {
-	return t.tx
-}
-
-func NewTransaction(tx *gorm.DB) Transaction {
-	return &defaultTransaction{tx}
+func NewConnection(tx *gorm.DB) Connection {
+	return &defaultConnection{tx}
 }
 
 func Init(config DatabaseConfig) error {

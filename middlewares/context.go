@@ -14,8 +14,8 @@ const ErrInvalidContext = rserrors.Error("invalid context")
 
 type Context interface {
 	echo.Context
-	SetTx(transaction rsdb.Transaction) error
-	GetTx() (rsdb.Transaction, error)
+	SetTx(transaction rsdb.Connection) error
+	GetTx() (rsdb.Connection, error)
 	Language() string
 	QueryParamInt64(name string, defaultInt int64) (int64, error)
 	ParamInt64(name string) (int64, error)
@@ -25,7 +25,7 @@ type context struct {
 	echo.Context
 }
 
-func (c *context) SetTx(transaction rsdb.Transaction) error {
+func (c *context) SetTx(transaction rsdb.Connection) error {
 	if transaction == nil {
 		return rsdb.ErrInvalidTransaction
 	}
@@ -33,8 +33,8 @@ func (c *context) SetTx(transaction rsdb.Transaction) error {
 	return nil
 }
 
-func (c *context) GetTx() (rsdb.Transaction, error) {
-	tx, ok := c.Get("tx").(rsdb.Transaction)
+func (c *context) GetTx() (rsdb.Connection, error) {
+	tx, ok := c.Get("tx").(rsdb.Connection)
 	if !ok {
 		return nil, rsdb.ErrInvalidTransaction
 	}

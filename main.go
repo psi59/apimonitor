@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/sirupsen/logrus"
 
 	"github.com/realsangil/apimonitor/config"
@@ -33,6 +34,12 @@ func main() {
 	e := echo.New()
 	e.Use(
 		middlewares.ReplaceContextMiddleware,
+		middleware.Logger(),
+		middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"http://localhost:3001", "http://localhost:3000"},
+			AllowCredentials: true,
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}),
 	)
 	e.HTTPErrorHandler = middlewares.ErrorHandleMiddleware
 
@@ -53,17 +60,15 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	txMiddleware := middlewares.NewTransactionMiddleware()
-
 	v1 := e.Group("/v1")
 	{
 		v1WebService := v1.Group("/webservices")
 		{
-			v1WebService.POST("", webServiceHandler.CreateWebService, txMiddleware.Tx)
-			v1WebService.GET("", webServiceHandler.GetWebServiceList, txMiddleware.Tx)
-			v1WebService.GET(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.GetWebServiceById, txMiddleware.Tx)
-			v1WebService.DELETE(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.DeleteWebServiceById, txMiddleware.Tx)
-			v1WebService.PUT(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.UpdateWebServiceById, txMiddleware.Tx)
+			v1WebService.POST("", webServiceHandler.CreateWebService)
+			v1WebService.GET("", webServiceHandler.GetWebServiceList)
+			v1WebService.GET(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.GetWebServiceById)
+			v1WebService.DELETE(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.DeleteWebServiceById)
+			v1WebService.PUT(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.UpdateWebServiceById)
 		}
 	}
 

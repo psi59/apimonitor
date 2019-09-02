@@ -6,11 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lalaworks/kmessenger-webserver-go/pkg/lalaerrors"
 	mocks2 "github.com/realsangil/apimonitor/middlewares/mocks"
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/amerr"
-	mocks3 "github.com/realsangil/apimonitor/pkg/rsdb/mocks"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rsmodel"
 	"github.com/realsangil/apimonitor/pkg/testutils"
@@ -26,8 +24,6 @@ type webServiceHandlerMockFunc func(mockContext *mocks2.Context, mockWebServiceS
 
 func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 	testutils.MonkeyAll()
-
-	mockTx := &mocks3.Transaction{}
 
 	tests := []struct {
 		name     string
@@ -54,31 +50,23 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 				}
 
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("Bind", &models.WebServiceRequest{}).Run(func(args mock.Arguments) {
 					arg := args.Get(0).(*models.WebServiceRequest)
 					*arg = request
 				}).Return(nil)
 
-				mockWebServiceService.On("CreateWebService", mockTx, request).Return(webService, nil)
+				mockWebServiceService.On("CreateWebService", request).Return(webService, nil)
 
 				mockContext.On("JSON", http.StatusOK, webService).Return(nil)
 			},
 			wantErr: nil,
 		},
 		{
-			name: "transaction error",
-			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
-				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(nil, rserrors.ErrUnexpected)
-			},
-			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
-		},
-		{
 			name: "bind error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("Bind", &models.WebServiceRequest{}).Return(rserrors.ErrUnexpected)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang),
@@ -93,13 +81,13 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 				}
 
 				mockContext.On("Language").Return("ko")
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("Bind", &models.WebServiceRequest{}).Run(func(args mock.Arguments) {
 					arg := args.Get(0).(*models.WebServiceRequest)
 					*arg = request
 				}).Return(nil)
 
-				mockWebServiceService.On("CreateWebService", mockTx, request).Return(nil, amerr.GetErrInternalServer())
+				mockWebServiceService.On("CreateWebService", request).Return(nil, amerr.GetErrInternalServer())
 			},
 			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
 		},
@@ -113,13 +101,13 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 				}
 
 				mockContext.On("Language").Return("ko")
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("Bind", &models.WebServiceRequest{}).Run(func(args mock.Arguments) {
 					arg := args.Get(0).(*models.WebServiceRequest)
 					*arg = request
 				}).Return(nil)
 
-				mockWebServiceService.On("CreateWebService", mockTx, request).Return(nil, amerr.GetErrorsFromCode(amerr.ErrDuplicatedWebService))
+				mockWebServiceService.On("CreateWebService", request).Return(nil, amerr.GetErrorsFromCode(amerr.ErrDuplicatedWebService))
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrDuplicatedWebService).GetErrFromLanguage(lang),
 		},
@@ -199,8 +187,6 @@ func TestNewWebServiceHandler(t *testing.T) {
 func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 	testutils.MonkeyAll()
 
-	mockTx := &mocks3.Transaction{}
-
 	tests := []struct {
 		name     string
 		mockFunc webServiceHandlerMockFunc
@@ -219,11 +205,11 @@ func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 					LastModified: time.Now(),
 				}
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
 
-				mockWebServiceService.On("GetWebServiceById", mockTx, &models.WebService{Id: 1}).Run(func(args mock.Arguments) {
-					arg := args.Get(1).(*models.WebService)
+				mockWebServiceService.On("GetWebServiceById", &models.WebService{Id: 1}).Run(func(args mock.Arguments) {
+					arg := args.Get(0).(*models.WebService)
 					*arg = *webService
 				}).Return(nil)
 
@@ -232,19 +218,10 @@ func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "transaction error",
-			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
-				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(nil, rserrors.ErrUnexpected)
-				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
-			},
-			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
-		},
-		{
 			name: "invalid webServiceId",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(0), rserrors.ErrUnexpected)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang),
@@ -253,10 +230,10 @@ func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 			name: "unexpected Service error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", "web_service_id").Return(int64(1), nil)
 
-				mockWebServiceService.On("GetWebServiceById", mockTx, &models.WebService{Id: 1}).Return(amerr.GetErrInternalServer())
+				mockWebServiceService.On("GetWebServiceById", &models.WebService{Id: 1}).Return(amerr.GetErrInternalServer())
 			},
 			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
 		},
@@ -278,8 +255,6 @@ func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
 	testutils.MonkeyAll()
 
-	mockTx := &mocks3.Transaction{}
-
 	tests := []struct {
 		name     string
 		mockFunc webServiceHandlerMockFunc
@@ -298,11 +273,11 @@ func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
 					LastModified: time.Now(),
 				}
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
 
-				mockWebServiceService.On("DeleteWebServiceById", mockTx, &models.WebService{Id: 1}).Run(func(args mock.Arguments) {
-					arg := args.Get(1).(*models.WebService)
+				mockWebServiceService.On("DeleteWebServiceById", &models.WebService{Id: 1}).Run(func(args mock.Arguments) {
+					arg := args.Get(0).(*models.WebService)
 					*arg = *webService
 				}).Return(nil)
 
@@ -311,19 +286,10 @@ func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "transaction error",
-			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
-				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(nil, rserrors.ErrUnexpected)
-				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
-			},
-			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
-		},
-		{
 			name: "invalid webServiceId",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(0), rserrors.ErrUnexpected)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang),
@@ -332,10 +298,10 @@ func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
 			name: "unexpected Service error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", "web_service_id").Return(int64(1), nil)
 
-				mockWebServiceService.On("DeleteWebServiceById", mockTx, &models.WebService{Id: 1}).Return(amerr.GetErrInternalServer())
+				mockWebServiceService.On("DeleteWebServiceById", &models.WebService{Id: 1}).Return(amerr.GetErrInternalServer())
 			},
 			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
 		},
@@ -358,8 +324,6 @@ func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
 
 func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 	testutils.MonkeyAll()
-
-	mockTx := &mocks3.Transaction{}
 
 	webServiceWithId := &models.WebService{Id: 1}
 	webService := &models.WebService{
@@ -386,15 +350,15 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
 				mockContext.On("Bind", &models.WebServiceRequest{}).Run(func(args mock.Arguments) {
 					arg := args.Get(0).(*models.WebServiceRequest)
 					*arg = webServiceRequest
 				}).Return(nil)
 
-				mockWebServiceService.On("UpdateWebServiceById", mockTx, webServiceWithId, webServiceRequest).Run(func(args mock.Arguments) {
-					arg := args.Get(1).(*models.WebService)
+				mockWebServiceService.On("UpdateWebServiceById", webServiceWithId, webServiceRequest).Run(func(args mock.Arguments) {
+					arg := args.Get(0).(*models.WebService)
 					*arg = *webService
 				}).Return(nil)
 
@@ -403,18 +367,10 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "transaction error",
-			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
-				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(nil, rserrors.ErrUnexpected)
-			},
-			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
-		},
-		{
 			name: "invalid WebServiceId",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(0), rserrors.ErrUnexpected)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang),
@@ -423,9 +379,9 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 			name: "Bind error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
-				mockContext.On("Bind", &models.WebServiceRequest{}).Return(lalaerrors.ErrUnexpected)
+				mockContext.On("Bind", &models.WebServiceRequest{}).Return(rserrors.ErrUnexpected)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang),
 		},
@@ -433,14 +389,14 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 			name: "WebServiceService.UpdateWebServiceById error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("ParamInt64", WebServiceIdParam).Return(int64(1), nil)
 				mockContext.On("Bind", &models.WebServiceRequest{}).Run(func(args mock.Arguments) {
 					arg := args.Get(0).(*models.WebServiceRequest)
 					*arg = webServiceRequest
 				}).Return(nil)
 
-				mockWebServiceService.On("UpdateWebServiceById", mockTx, webServiceWithId, webServiceRequest).Return(amerr.GetErrInternalServer())
+				mockWebServiceService.On("UpdateWebServiceById", webServiceWithId, webServiceRequest).Return(amerr.GetErrInternalServer())
 			},
 			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
 		},
@@ -481,8 +437,6 @@ func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 		},
 	}
 
-	mockTx := &mocks3.Transaction{}
-
 	tests := []struct {
 		name     string
 		mockFunc webServiceHandlerMockFunc
@@ -492,11 +446,11 @@ func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
+
 				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(1), nil)
 				mockContext.On("QueryParamInt64", "num_item", int64(20)).Return(int64(20), nil)
 
-				mockWebServiceService.On("GetWebServiceList", mockTx, models.WebServiceListRequest{
+				mockWebServiceService.On("GetWebServiceList", models.WebServiceListRequest{
 					Page:    1,
 					NumItem: 20,
 				}).Return(paginatedList, nil)
@@ -506,18 +460,9 @@ func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "invalid transaction",
-			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
-				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(nil, amerr.GetErrInternalServer().GetErrFromLanguage(lang))
-			},
-			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(lang),
-		},
-		{
 			name: "invalid page",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
 				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(0), rserrors.ErrUnexpected)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang),
@@ -526,7 +471,6 @@ func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 			name: "invalid num_item",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
 				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(1), nil)
 				mockContext.On("QueryParamInt64", "num_item", int64(20)).Return(int64(0), rserrors.ErrUnexpected)
 			},
@@ -536,11 +480,10 @@ func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 			name: "[WebServiceService.GetWebServiceList] unexpected error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				mockContext.On("Language").Return(lang)
-				mockContext.On("GetTx").Return(mockTx, nil)
 				mockContext.On("QueryParamInt64", "page", int64(1)).Return(int64(1), nil)
 				mockContext.On("QueryParamInt64", "num_item", int64(20)).Return(int64(20), nil)
 
-				mockWebServiceService.On("GetWebServiceList", mockTx, models.WebServiceListRequest{
+				mockWebServiceService.On("GetWebServiceList", models.WebServiceListRequest{
 					Page:    1,
 					NumItem: 20,
 				}).Return(nil, amerr.GetErrInternalServer())

@@ -15,9 +15,9 @@ type WebServiceRepositoryImpl struct {
 	rsdb.Repository
 }
 
-func (repository WebServiceRepositoryImpl) CreateTable(transaction rsdb.Transaction) error {
+func (repository WebServiceRepositoryImpl) CreateTable(transaction rsdb.Connection) error {
 	m := &models.WebService{}
-	tx := transaction.Tx()
+	tx := transaction.Conn()
 	if tx.HasTable(m) {
 		return nil
 	}

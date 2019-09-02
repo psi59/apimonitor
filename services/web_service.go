@@ -12,19 +12,19 @@ import (
 )
 
 type WebServiceService interface {
-	CreateWebService(transaction rsdb.Transaction, request models.WebServiceRequest) (*models.WebService, *amerr.ErrorWithLanguage)
-	GetWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage
-	DeleteWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage
-	UpdateWebServiceById(transaction rsdb.Transaction, webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage
-	GetWebServiceList(transaction rsdb.Transaction, request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
+	CreateWebService(request models.WebServiceRequest) (*models.WebService, *amerr.ErrorWithLanguage)
+	GetWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage
+	DeleteWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage
+	UpdateWebServiceById(webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage
+	GetWebServiceList(request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type WebServiceServiceImpl struct {
 	webServiceRepository repositories.WebServiceRepository
 }
 
-func (service *WebServiceServiceImpl) CreateWebService(transaction rsdb.Transaction, request models.WebServiceRequest) (*models.WebService, *amerr.ErrorWithLanguage) {
-	if rsvalid.IsZero(transaction, request) {
+func (service *WebServiceServiceImpl) CreateWebService(request models.WebServiceRequest) (*models.WebService, *amerr.ErrorWithLanguage) {
+	if rsvalid.IsZero(request) {
 		return nil, amerr.GetErrorsFromCode(amerr.ErrInternalServer)
 	}
 
@@ -34,7 +34,7 @@ func (service *WebServiceServiceImpl) CreateWebService(transaction rsdb.Transact
 		return nil, amerr.GetErrorsFromCode(amerr.ErrBadRequest)
 	}
 
-	if err := service.webServiceRepository.Create(transaction, webService); err != nil {
+	if err := service.webServiceRepository.Create(rsdb.GetConnection(), webService); err != nil {
 		rslog.Error(err)
 		switch err {
 		case rsdb.ErrInvalidData:
@@ -48,12 +48,12 @@ func (service *WebServiceServiceImpl) CreateWebService(transaction rsdb.Transact
 	return webService, nil
 }
 
-func (service *WebServiceServiceImpl) GetWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage {
-	if rsvalid.IsZero(transaction, webService) {
+func (service *WebServiceServiceImpl) GetWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage {
+	if rsvalid.IsZero(webService) {
 		return amerr.GetErrorsFromCode(amerr.ErrInternalServer)
 	}
 
-	if err := service.webServiceRepository.GetById(transaction, webService); err != nil {
+	if err := service.webServiceRepository.GetById(rsdb.GetConnection(), webService); err != nil {
 		switch err {
 		case rsdb.ErrRecordNotFound:
 			return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound)
@@ -65,16 +65,16 @@ func (service *WebServiceServiceImpl) GetWebServiceById(transaction rsdb.Transac
 	return nil
 }
 
-func (service *WebServiceServiceImpl) DeleteWebServiceById(transaction rsdb.Transaction, webService *models.WebService) *amerr.ErrorWithLanguage {
-	if rsvalid.IsZero(transaction, webService) {
+func (service *WebServiceServiceImpl) DeleteWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage {
+	if rsvalid.IsZero(webService) {
 		return amerr.GetErrorsFromCode(amerr.ErrInternalServer)
 	}
 
-	if err := service.GetWebServiceById(transaction, webService); err != nil {
+	if err := service.GetWebServiceById(webService); err != nil {
 		return err
 	}
 
-	if err := service.webServiceRepository.DeleteById(transaction, webService); err != nil {
+	if err := service.webServiceRepository.DeleteById(rsdb.GetConnection(), webService); err != nil {
 		switch err {
 		case rsdb.ErrRecordNotFound:
 			return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound)
@@ -86,12 +86,12 @@ func (service *WebServiceServiceImpl) DeleteWebServiceById(transaction rsdb.Tran
 	return nil
 }
 
-func (service *WebServiceServiceImpl) UpdateWebServiceById(transaction rsdb.Transaction, webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage {
-	if rsvalid.IsZero(transaction, webService) {
+func (service *WebServiceServiceImpl) UpdateWebServiceById(webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage {
+	if rsvalid.IsZero(webService) {
 		return amerr.GetErrorsFromCode(amerr.ErrInternalServer)
 	}
 
-	if err := service.GetWebServiceById(transaction, webService); err != nil {
+	if err := service.GetWebServiceById(webService); err != nil {
 		return err
 	}
 
@@ -100,7 +100,7 @@ func (service *WebServiceServiceImpl) UpdateWebServiceById(transaction rsdb.Tran
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest)
 	}
 
-	if err := service.webServiceRepository.Save(transaction, webService); err != nil {
+	if err := service.webServiceRepository.Save(rsdb.GetConnection(), webService); err != nil {
 		switch err {
 		case rsdb.ErrRecordNotFound:
 			return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound)
@@ -112,13 +112,13 @@ func (service *WebServiceServiceImpl) UpdateWebServiceById(transaction rsdb.Tran
 	return nil
 }
 
-func (service *WebServiceServiceImpl) GetWebServiceList(transaction rsdb.Transaction, request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
-	if rsvalid.IsZero(transaction, request) {
+func (service *WebServiceServiceImpl) GetWebServiceList(request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
+	if rsvalid.IsZero(request) {
 		return nil, amerr.GetErrorsFromCode(amerr.ErrInternalServer)
 	}
 
 	items := make([]*models.WebService, 0)
-	totalCount, err := service.webServiceRepository.List(transaction, &items, rsdb.ListFilter{
+	totalCount, err := service.webServiceRepository.List(rsdb.GetConnection(), &items, rsdb.ListFilter{
 		Page:       request.Page,
 		NumItem:    request.NumItem,
 		Conditions: map[string]interface{}{},

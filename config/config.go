@@ -4,7 +4,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/lalaworks/jiranfamily-server/pkg/lalaerrors"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
@@ -93,19 +92,19 @@ func (c *dbConfigure) GetVerbose() bool {
 
 func (c *dbConfigure) Validate() error {
 	if c.Host == "" {
-		return errors.Wrap(lalaerrors.ErrInvalidParameter, "db.host")
+		return errors.Wrap(rserrors.ErrInvalidParameter, "db.host")
 	}
 	if c.Port == 0 {
-		return errors.Wrap(lalaerrors.ErrInvalidParameter, "db.password")
+		return errors.Wrap(rserrors.ErrInvalidParameter, "db.password")
 	}
 	if c.Username == "" {
-		return errors.Wrap(lalaerrors.ErrInvalidParameter, "db.username")
+		return errors.Wrap(rserrors.ErrInvalidParameter, "db.username")
 	}
 	if c.Password == "" {
-		return errors.Wrap(lalaerrors.ErrInvalidParameter, "db.password")
+		return errors.Wrap(rserrors.ErrInvalidParameter, "db.password")
 	}
 	if c.Name == "" {
-		return errors.Wrap(lalaerrors.ErrInvalidParameter, "db.name")
+		return errors.Wrap(rserrors.ErrInvalidParameter, "db.name")
 	}
 	return nil
 }

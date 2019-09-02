@@ -38,18 +38,13 @@ func (handler *WebServiceHandlerImpl) CreateWebService(c echo.Context) error {
 	}
 
 	lang := ctx.Language()
-	tx, err := ctx.GetTx()
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
-	}
 
 	var request models.WebServiceRequest
 	if err := ctx.Bind(&request); err != nil {
 		rslog.Error(err)
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
-	webService, aerr := handler.webServiceService.CreateWebService(tx, request)
+	webService, aerr := handler.webServiceService.CreateWebService(request)
 	if aerr != nil {
 		return aerr.GetErrFromLanguage(lang)
 	}
@@ -64,11 +59,6 @@ func (handler *WebServiceHandlerImpl) GetWebServiceById(c echo.Context) error {
 	}
 
 	lang := ctx.Language()
-	tx, err := ctx.GetTx()
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
-	}
 
 	webServiceId, err := ctx.ParamInt64(WebServiceIdParam)
 	if err != nil {
@@ -77,7 +67,7 @@ func (handler *WebServiceHandlerImpl) GetWebServiceById(c echo.Context) error {
 	}
 
 	webService := &models.WebService{Id: webServiceId}
-	if err := handler.webServiceService.GetWebServiceById(tx, webService); err != nil {
+	if err := handler.webServiceService.GetWebServiceById(webService); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
@@ -91,11 +81,6 @@ func (handler *WebServiceHandlerImpl) DeleteWebServiceById(c echo.Context) error
 	}
 
 	lang := ctx.Language()
-	tx, err := ctx.GetTx()
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
-	}
 
 	webServiceId, err := ctx.ParamInt64(WebServiceIdParam)
 	if err != nil {
@@ -104,7 +89,7 @@ func (handler *WebServiceHandlerImpl) DeleteWebServiceById(c echo.Context) error
 	}
 
 	webService := &models.WebService{Id: webServiceId}
-	if err := handler.webServiceService.DeleteWebServiceById(tx, webService); err != nil {
+	if err := handler.webServiceService.DeleteWebServiceById(webService); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
@@ -118,11 +103,6 @@ func (handler *WebServiceHandlerImpl) UpdateWebServiceById(c echo.Context) error
 	}
 
 	lang := ctx.Language()
-	tx, err := ctx.GetTx()
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
-	}
 
 	webServiceId, err := ctx.ParamInt64(WebServiceIdParam)
 	if err != nil {
@@ -137,7 +117,7 @@ func (handler *WebServiceHandlerImpl) UpdateWebServiceById(c echo.Context) error
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	if err := handler.webServiceService.UpdateWebServiceById(tx, webService, request); err != nil {
+	if err := handler.webServiceService.UpdateWebServiceById(webService, request); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
@@ -151,11 +131,6 @@ func (handler *WebServiceHandlerImpl) GetWebServiceList(c echo.Context) error {
 	}
 
 	lang := ctx.Language()
-	tx, err := ctx.GetTx()
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrInternalServer().GetErrFromLanguage(lang)
-	}
 
 	page, err := ctx.QueryParamInt64("page", 1)
 	if err != nil {
@@ -169,7 +144,7 @@ func (handler *WebServiceHandlerImpl) GetWebServiceList(c echo.Context) error {
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	list, aerr := handler.webServiceService.GetWebServiceList(tx, models.WebServiceListRequest{
+	list, aerr := handler.webServiceService.GetWebServiceList(models.WebServiceListRequest{
 		Page:    int(page),
 		NumItem: int(numItem),
 	})

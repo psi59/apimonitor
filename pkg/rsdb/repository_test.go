@@ -179,7 +179,7 @@ func TestDefaultRepository_Create(t *testing.T) {
 			defer gormDB.Close()
 			defer assertMockDatabase(t, mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			tt.args.expectQuery(mock)
 
@@ -236,7 +236,7 @@ func TestDefaultRepository_GetById(t *testing.T) {
 
 			tt.args.expectQuery(mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			repo := &DefaultRepository{}
 			gotErr := repo.GetById(tx, tt.args.id)
@@ -291,7 +291,7 @@ func TestDefaultRepository_DeleteById(t *testing.T) {
 			defer gormDB.Close()
 			defer assertMockDatabase(t, mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			tt.args.expectQuery(mock)
 
@@ -349,7 +349,7 @@ func TestDefaultRepository_Save(t *testing.T) {
 
 			tt.args.expectQuery(mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			repo := &DefaultRepository{}
 			gotErr := repo.Save(tx, tt.args.src)
@@ -424,7 +424,7 @@ func TestDefaultRepository_Patch(t *testing.T) {
 
 			tt.args.expectQuery(mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			repo := &DefaultRepository{}
 			gotErr := repo.Patch(tx, tt.args.src, tt.args.data)
@@ -533,7 +533,7 @@ func TestDefaultRepository_List(t *testing.T) {
 
 			tt.expectQuery(mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			repo := &DefaultRepository{}
 			got, gotErr := repo.List(tx, tt.args.src, tt.args.filter, tt.args.orders)
@@ -627,7 +627,7 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 			defer gormDB.Close()
 			defer assertMockDatabase(t, mock)
 
-			tx := NewTransaction(gormDB)
+			tx := NewConnection(gormDB)
 
 			tt.args.expectQuery(mock)
 

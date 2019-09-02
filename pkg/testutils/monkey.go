@@ -5,6 +5,9 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/pkg/errors"
+
+	"github.com/realsangil/apimonitor/pkg/rsdb"
+	"github.com/realsangil/apimonitor/pkg/rsdb/mocks"
 )
 
 func MonkeyTimeNow(now time.Time) {
@@ -22,6 +25,12 @@ func MonkeyErrorsWrap() {
 func MonkeyErrorsWithStack() {
 	monkey.Patch(errors.WithStack, func(err error) error {
 		return err
+	})
+}
+
+func MonkeyGetConnection(conn *mocks.Connection) {
+	monkey.Patch(rsdb.GetConnection, func() rsdb.Connection {
+		return conn
 	})
 }
 

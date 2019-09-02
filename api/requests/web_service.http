@@ -3,9 +3,9 @@ POST {{apiAddr}}/{{apiVersion}}/webservices
 Content-Type: application/json
 
 {
-  "host": "http://admin.lalaworks.com",
+  "host": "http://realsangil.github.io",
   "desc": "test api",
-  "favicon": ""
+  "favicon": "https://realsangil.github.io/assets/images/blog/bio-photo.png"
 }
 
 ###

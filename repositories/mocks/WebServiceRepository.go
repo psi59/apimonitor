@@ -13,11 +13,11 @@ type WebServiceRepository struct {
 }
 
 // Create provides a mock function with given fields: tx, src
-func (_m *WebServiceRepository) Create(tx rsdb.Transaction, src rsmodel.ValidatedObject) error {
+func (_m *WebServiceRepository) Create(tx rsdb.Connection, src rsmodel.ValidatedObject) error {
 	ret := _m.Called(tx, src)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, rsmodel.ValidatedObject) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, src)
 	} else {
 		r0 = ret.Error(0)
@@ -27,11 +27,11 @@ func (_m *WebServiceRepository) Create(tx rsdb.Transaction, src rsmodel.Validate
 }
 
 // CreateTable provides a mock function with given fields: tx
-func (_m *WebServiceRepository) CreateTable(tx rsdb.Transaction) error {
+func (_m *WebServiceRepository) CreateTable(tx rsdb.Connection) error {
 	ret := _m.Called(tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection) error); ok {
 		r0 = rf(tx)
 	} else {
 		r0 = ret.Error(0)
@@ -41,11 +41,11 @@ func (_m *WebServiceRepository) CreateTable(tx rsdb.Transaction) error {
 }
 
 // DeleteById provides a mock function with given fields: tx, id
-func (_m *WebServiceRepository) DeleteById(tx rsdb.Transaction, id rsmodel.ValidatedObject) error {
+func (_m *WebServiceRepository) DeleteById(tx rsdb.Connection, id rsmodel.ValidatedObject) error {
 	ret := _m.Called(tx, id)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, rsmodel.ValidatedObject) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, id)
 	} else {
 		r0 = ret.Error(0)
@@ -55,11 +55,11 @@ func (_m *WebServiceRepository) DeleteById(tx rsdb.Transaction, id rsmodel.Valid
 }
 
 // FirstOrCreate provides a mock function with given fields: tx, src
-func (_m *WebServiceRepository) FirstOrCreate(tx rsdb.Transaction, src rsmodel.ValidatedObject) error {
+func (_m *WebServiceRepository) FirstOrCreate(tx rsdb.Connection, src rsmodel.ValidatedObject) error {
 	ret := _m.Called(tx, src)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, rsmodel.ValidatedObject) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, src)
 	} else {
 		r0 = ret.Error(0)
@@ -69,11 +69,11 @@ func (_m *WebServiceRepository) FirstOrCreate(tx rsdb.Transaction, src rsmodel.V
 }
 
 // GetById provides a mock function with given fields: tx, id
-func (_m *WebServiceRepository) GetById(tx rsdb.Transaction, id rsmodel.ValidatedObject) error {
+func (_m *WebServiceRepository) GetById(tx rsdb.Connection, id rsmodel.ValidatedObject) error {
 	ret := _m.Called(tx, id)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, rsmodel.ValidatedObject) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, id)
 	} else {
 		r0 = ret.Error(0)
@@ -83,18 +83,18 @@ func (_m *WebServiceRepository) GetById(tx rsdb.Transaction, id rsmodel.Validate
 }
 
 // List provides a mock function with given fields: tx, items, filter, orders
-func (_m *WebServiceRepository) List(tx rsdb.Transaction, items interface{}, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
+func (_m *WebServiceRepository) List(tx rsdb.Connection, items interface{}, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
 	ret := _m.Called(tx, items, filter, orders)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, interface{}, rsdb.ListFilter, rsdb.Orders) int); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, interface{}, rsdb.ListFilter, rsdb.Orders) int); ok {
 		r0 = rf(tx, items, filter, orders)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(rsdb.Transaction, interface{}, rsdb.ListFilter, rsdb.Orders) error); ok {
+	if rf, ok := ret.Get(1).(func(rsdb.Connection, interface{}, rsdb.ListFilter, rsdb.Orders) error); ok {
 		r1 = rf(tx, items, filter, orders)
 	} else {
 		r1 = ret.Error(1)
@@ -104,11 +104,11 @@ func (_m *WebServiceRepository) List(tx rsdb.Transaction, items interface{}, fil
 }
 
 // Patch provides a mock function with given fields: tx, src, data
-func (_m *WebServiceRepository) Patch(tx rsdb.Transaction, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error {
+func (_m *WebServiceRepository) Patch(tx rsdb.Connection, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error {
 	ret := _m.Called(tx, src, data)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, rsmodel.ValidatedObject, rsmodel.ValidatedObject) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, src, data)
 	} else {
 		r0 = ret.Error(0)
@@ -118,11 +118,11 @@ func (_m *WebServiceRepository) Patch(tx rsdb.Transaction, src rsmodel.Validated
 }
 
 // Save provides a mock function with given fields: tx, src
-func (_m *WebServiceRepository) Save(tx rsdb.Transaction, src rsmodel.ValidatedObject) error {
+func (_m *WebServiceRepository) Save(tx rsdb.Connection, src rsmodel.ValidatedObject) error {
 	ret := _m.Called(tx, src)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(rsdb.Transaction, rsmodel.ValidatedObject) error); ok {
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, src)
 	} else {
 		r0 = ret.Error(0)

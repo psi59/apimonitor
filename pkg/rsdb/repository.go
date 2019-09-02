@@ -9,10 +9,10 @@ import (
 	"github.com/VividCortex/mysqlerr"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/lalaworks/kmessenger-webserver-go/pkg/lalalog"
 	"github.com/pkg/errors"
 
 	sierrors "github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rslog"
 	"github.com/realsangil/apimonitor/pkg/rsmodel"
 )
 
@@ -25,19 +25,19 @@ const (
 )
 
 type Repository interface {
-	Create(tx Transaction, src rsmodel.ValidatedObject) error
-	FirstOrCreate(tx Transaction, src rsmodel.ValidatedObject) error
-	DeleteById(tx Transaction, id rsmodel.ValidatedObject) error
-	GetById(tx Transaction, id rsmodel.ValidatedObject) error
-	Save(tx Transaction, src rsmodel.ValidatedObject) error
-	Patch(tx Transaction, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error
-	List(tx Transaction, items interface{}, filter ListFilter, orders Orders) (totalCount int, err error)
-	CreateTable(tx Transaction) error
+	Create(tx Connection, src rsmodel.ValidatedObject) error
+	FirstOrCreate(tx Connection, src rsmodel.ValidatedObject) error
+	DeleteById(tx Connection, id rsmodel.ValidatedObject) error
+	GetById(tx Connection, id rsmodel.ValidatedObject) error
+	Save(tx Connection, src rsmodel.ValidatedObject) error
+	Patch(tx Connection, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error
+	List(tx Connection, items interface{}, filter ListFilter, orders Orders) (totalCount int, err error)
+	CreateTable(tx Connection) error
 }
 
 type DefaultRepository struct{}
 
-func (repo DefaultRepository) CreateTable(tx Transaction) error {
+func (repo DefaultRepository) CreateTable(tx Connection) error {
 	return nil
 }
 
@@ -55,55 +55,55 @@ func checkItems(items interface{}) error {
 	return nil
 }
 
-func (repo *DefaultRepository) Patch(tx Transaction, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) Patch(tx Connection, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error {
 	if !data.IsValidated() {
 		return ErrInvalidModel
 	}
-	err := tx.Tx().Model(src).Updates(data).Error
+	err := tx.Conn().Model(src).Updates(data).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) Save(tx Transaction, src rsmodel.ValidatedObject) error {
-	err := tx.Tx().Save(src).Error
+func (repo *DefaultRepository) Save(tx Connection, src rsmodel.ValidatedObject) error {
+	err := tx.Conn().Save(src).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) DeleteById(tx Transaction, id rsmodel.ValidatedObject) error {
-	err := tx.Tx().Debug().Delete(id).Error
+func (repo *DefaultRepository) DeleteById(tx Connection, id rsmodel.ValidatedObject) error {
+	err := tx.Conn().Debug().Delete(id).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) GetById(tx Transaction, id rsmodel.ValidatedObject) error {
-	err := tx.Tx().First(id).Error
+func (repo *DefaultRepository) GetById(tx Connection, id rsmodel.ValidatedObject) error {
+	err := tx.Conn().First(id).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) Create(tx Transaction, src rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) Create(tx Connection, src rsmodel.ValidatedObject) error {
 	if !src.IsValidated() {
 		return ErrInvalidModel
 	}
-	if err := tx.Tx().Create(src).Error; err != nil {
+	if err := tx.Conn().Create(src).Error; err != nil {
 		return HandleSQLError(err)
 	}
 	return nil
 }
 
-func (repo *DefaultRepository) FirstOrCreate(tx Transaction, src rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) FirstOrCreate(tx Connection, src rsmodel.ValidatedObject) error {
 	if !src.IsValidated() {
 		return ErrInvalidModel
 	}
-	if err := tx.Tx().FirstOrCreate(src).Error; err != nil {
+	if err := tx.Conn().FirstOrCreate(src).Error; err != nil {
 		return HandleSQLError(err)
 	}
 	return nil
 }
 
-func (repo *DefaultRepository) List(tx Transaction, items interface{}, filter ListFilter, orders Orders) (int, error) {
+func (repo *DefaultRepository) List(tx Connection, items interface{}, filter ListFilter, orders Orders) (int, error) {
 	if e := checkItems(items); e != nil {
 		return 0, errors.WithStack(e)
 	}
 
-	query := tx.Tx()
+	query := tx.Conn()
 
 	if filter.Conditions != nil {
 		query = query.Where(filter.Conditions)
@@ -149,7 +149,7 @@ func HandleSQLError(err error) error {
 	}
 
 	_, fn, line, _ := runtime.Caller(1)
-	lalalog.Errorf("repository error=%v, function=%v, line=%v", err, fn, line)
+	rslog.Errorf("repository error=%v, function=%v, line=%v", err, fn, line)
 	return err
 }
 

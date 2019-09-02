@@ -15,9 +15,9 @@ type EndpointRepositoryImpl struct {
 	rsdb.Repository
 }
 
-func (endpointRepositoryImpl EndpointRepositoryImpl) CreateTable(transaction rsdb.Transaction) error {
+func (endpointRepositoryImpl EndpointRepositoryImpl) CreateTable(transaction rsdb.Connection) error {
 	m := &models.Endpoint{}
-	tx := transaction.Tx()
+	tx := transaction.Conn()
 	if tx.HasTable(m) {
 		return nil
 	}
