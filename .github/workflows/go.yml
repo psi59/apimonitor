@@ -13,7 +13,7 @@ jobs:
 
       - name: Get dependencies
         run: |
-          go mod vender -v
+          go mod vendor -v
 
       - name: gotest
         run: go test -v ./...
