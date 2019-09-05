@@ -21,5 +21,5 @@ jobs:
           go mod vendor -v
 
       - name: gotest
-        run: go test -gcflags=-l -v ./...
+        run: go test -cover -gcflags=-l -v ./...
 

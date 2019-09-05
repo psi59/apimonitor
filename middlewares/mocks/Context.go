@@ -2,7 +2,7 @@
 
 package mocks
 
-import echo "github.com/labstack/echo"
+import echo "github.com/labstack/echo/v4"
 import http "net/http"
 import io "io"
 
