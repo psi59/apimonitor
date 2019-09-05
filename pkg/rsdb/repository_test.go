@@ -558,8 +558,8 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 			args: args{
 				expectQuery: func(mock sqlmock.Sqlmock) {
 					// rows := sqlmock.NewRows([]string{"id", "count"})
-					mock.ExpectBegin()
 					mock.ExpectQuery("SELECT").WithArgs(1).WillReturnError(gorm.ErrRecordNotFound)
+					mock.ExpectBegin()
 					mock.ExpectExec(`INSERT`).WithArgs(1, 2).WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.ExpectCommit()
 				},
@@ -572,9 +572,7 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 			args: args{
 				expectQuery: func(mock sqlmock.Sqlmock) {
 					rows := sqlmock.NewRows([]string{"id", "count"}).AddRow(1, 2)
-					mock.ExpectBegin()
 					mock.ExpectQuery("SELECT").WithArgs(1).WillReturnRows(rows)
-					mock.ExpectCommit()
 				},
 				mockData: &MockModel{Id: 1, Count: 2, isValidate: true},
 			},
@@ -583,10 +581,8 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 		{
 			name: "유효성 검사되지 않은 모델 에러",
 			args: args{
-				expectQuery: func(mock sqlmock.Sqlmock) {
-
-				},
-				mockData: &MockModel{Id: 1, Count: 2, isValidate: false},
+				expectQuery: func(mock sqlmock.Sqlmock) {},
+				mockData:    &MockModel{Id: 1, Count: 2, isValidate: false},
 			},
 			wantErr: ErrInvalidModel,
 		},
@@ -595,8 +591,8 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 			args: args{
 				expectQuery: func(mock sqlmock.Sqlmock) {
 					rows := sqlmock.NewRows([]string{"id", "count"})
-					mock.ExpectBegin()
 					mock.ExpectQuery("SELECT").WithArgs(2).WillReturnRows(rows)
+					mock.ExpectBegin()
 					mock.ExpectExec(`INSERT`).WithArgs(2, 2).WillReturnError(fmt.Errorf("oops"))
 					mock.ExpectRollback()
 				},
@@ -608,9 +604,7 @@ func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 			name: "SQL 에러",
 			args: args{
 				expectQuery: func(mock sqlmock.Sqlmock) {
-					mock.ExpectBegin()
 					mock.ExpectQuery("SELECT").WithArgs(2).WillReturnError(fmt.Errorf("oops"))
-					mock.ExpectRollback()
 				},
 				mockData: &MockModel{Id: 2, Count: 2, isValidate: true},
 			},
