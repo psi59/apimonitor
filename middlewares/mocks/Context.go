@@ -740,6 +740,11 @@ func (_m *Context) SetRequest(r *http.Request) {
 	_m.Called(r)
 }
 
+// SetResponse provides a mock function with given fields: r
+func (_m *Context) SetResponse(r *echo.Response) {
+	_m.Called(r)
+}
+
 // SetTx provides a mock function with given fields: transaction
 func (_m *Context) SetTx(transaction rsdb.Connection) error {
 	ret := _m.Called(transaction)
