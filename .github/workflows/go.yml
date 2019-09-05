@@ -3,7 +3,11 @@ on: [push]
 jobs:
   test:
     name: Test
-    run: go test ./...
+    runs-on: ubuntu-latest
+    uses: actions/setup-go@v1
+    steps:
+      - name: gotest
+        run: go test ./...
     
   build:
     name: Build
