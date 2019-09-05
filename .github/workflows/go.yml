@@ -20,7 +20,7 @@ jobs:
           fi
           
       - name: gotest
-        run: go test ./...
+        run: go test -v ./...
     
   build:
     name: Build
