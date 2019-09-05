@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/realsangil/apimonitor/pkg/testutils"
 )
 
 func Test_hostRegexpFindStringSubmatch(t *testing.T) {
@@ -189,6 +191,173 @@ func TestNewWebService(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewWebService() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWebService_Validate1(t *testing.T) {
+	type fields struct {
+		DefaultValidateChecker DefaultValidateChecker
+		Id                     int64
+		Host                   string
+		HttpSchema             string
+		Desc                   string
+		Favicon                string
+		Created                time.Time
+		LastModified           time.Time
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "pass",
+			fields: fields{
+				Host:         "realsangil.github.io",
+				HttpSchema:   "http",
+				Desc:         "my blog",
+				Favicon:      "",
+				Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid field",
+			fields: fields{
+				// Host:         "realsangil.github.io",
+				HttpSchema:   "http",
+				Desc:         "my blog",
+				Favicon:      "",
+				Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid field",
+			fields: fields{
+				Host:       "realsangil.github.io",
+				HttpSchema: "http",
+				// Desc:         "my blog",
+				Favicon:      "",
+				Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid field",
+			fields: fields{
+				Host:       "realsangil.github.io",
+				HttpSchema: "http",
+				Desc:       "my blog",
+				Favicon:    "",
+				// Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid field",
+			fields: fields{
+				Host:       "realsangil.github.io",
+				HttpSchema: "http",
+				Desc:       "my blog",
+				Favicon:    "",
+				Created:    time.Now(),
+				// LastModified: time.Now(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			webService := &WebService{
+				DefaultValidateChecker: tt.fields.DefaultValidateChecker,
+				Id:                     tt.fields.Id,
+				Host:                   tt.fields.Host,
+				HttpSchema:             tt.fields.HttpSchema,
+				Desc:                   tt.fields.Desc,
+				Favicon:                tt.fields.Favicon,
+				Created:                tt.fields.Created,
+				LastModified:           tt.fields.LastModified,
+			}
+			if err := webService.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestNewWebService1(t *testing.T) {
+	testutils.MonkeyAll()
+
+	type args struct {
+		request WebServiceRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *WebService
+		wantErr bool
+	}{
+		{
+			name: "pass",
+			args: args{
+				request: WebServiceRequest{
+					Host:    "https://realsangil.github.io",
+					Desc:    "sangil's blog",
+					Favicon: "",
+				},
+			},
+			want: &WebService{
+				DefaultValidateChecker: ValidatedDefaultValidateChecker,
+				Host:                   "realsangil.github.io",
+				HttpSchema:             "https",
+				Desc:                   "sangil's blog",
+				Favicon:                "",
+				Created:                time.Now(),
+				LastModified:           time.Now(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid host",
+			args: args{
+				request: WebServiceRequest{
+					Host:    "tps://realsangil.github.io",
+					Desc:    "sangil's blog",
+					Favicon: "",
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid desc",
+			args: args{
+				request: WebServiceRequest{
+					Host: "https://realsangil.github.io",
+					// Desc:    "sangil's blog",
+					Favicon: "",
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewWebService(tt.args.request)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewWebService() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewWebService() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

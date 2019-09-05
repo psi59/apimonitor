@@ -10,7 +10,6 @@ require (
 	github.com/json-iterator/go v1.1.7
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.2.9 // indirect
-	github.com/lalaworks/gopkg v0.2.1
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/viper v1.4.0

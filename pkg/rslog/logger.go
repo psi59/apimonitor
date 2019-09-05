@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"runtime"
 
-	lalaerrors "github.com/lalaworks/gopkg/errors"
 	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	"github.com/realsangil/apimonitor/pkg/rserrors"
 )
 
 const (
@@ -43,7 +44,7 @@ func setLevel(level string) error {
 	case LevelFatal:
 		logLevel = logrus.FatalLevel
 	default:
-		return lalaerrors.Error("invalid logger level")
+		return rserrors.Error("invalid logger level")
 	}
 	std.SetLevel(logLevel)
 	return nil
@@ -56,7 +57,7 @@ func setFormat(format string) error {
 	case FormatText:
 		std.SetFormatter(&logrus.TextFormatter{})
 	default:
-		return lalaerrors.Error("invalid logger format")
+		return rserrors.Error("invalid logger format")
 	}
 	return nil
 }
@@ -75,7 +76,7 @@ func setOutput(output, path string) error {
 		std.SetOutput(lumberjackLogger)
 	case OutputConsole:
 	default:
-		return lalaerrors.Error("invalid logger output")
+		return rserrors.Error("invalid logger output")
 	}
 	return nil
 }

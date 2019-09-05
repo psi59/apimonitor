@@ -2,21 +2,27 @@ package rsvalid
 
 import (
 	"reflect"
-
-	"github.com/realsangil/apimonitor/pkg/rslog"
 )
 
 func IsZero(i ...interface{}) bool {
-	isZero := false
+	bool := false
 	for _, j := range i {
-		typ := reflect.TypeOf(j)
-		if typ == nil {
+		v := reflect.ValueOf(j)
+		if isZero(v) {
 			return true
 		}
-		if j == reflect.Zero(typ).Interface() {
-			rslog.Debugf("%s is zero", typ)
-			isZero = true
-		}
 	}
-	return isZero
+	return bool
+}
+
+func isZero(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Slice:
+		return v.IsNil()
+	case reflect.Invalid:
+		return true
+	default:
+		z := reflect.Zero(v.Type())
+		return reflect.DeepEqual(z.Interface(), v.Interface())
+	}
 }

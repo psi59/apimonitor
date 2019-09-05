@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	lalaerrors "github.com/lalaworks/gopkg/errors"
 	"github.com/pkg/errors"
+	"github.com/realsangil/apimonitor/pkg/rserrors"
 )
 
-const ErrInvalidTransaction = lalaerrors.Error("invalid transaction")
+const ErrInvalidTransaction = rserrors.Error("invalid transaction")
 
 var (
 	conn *defaultConnection
