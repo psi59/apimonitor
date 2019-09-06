@@ -13,6 +13,7 @@ const (
 
 	ErrConflict             = 409
 	ErrDuplicatedWebService = 4091
+	ErrDuplicatedEndpoint   = 4092
 
 	ErrInternalServer = 500
 )
@@ -38,6 +39,9 @@ var (
 
 		ErrDuplicatedWebService: newErrorWithLanguage(
 			newError(http.StatusConflict, ErrDuplicatedWebService, "이미 같은 호스트의 웹서비스가 존재합니다."),
+		),
+		ErrDuplicatedEndpoint: newErrorWithLanguage(
+			newError(http.StatusConflict, ErrDuplicatedEndpoint, "이미 같은 엔드포인트가 존재합니다."),
 		),
 	}
 )

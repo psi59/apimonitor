@@ -64,6 +64,12 @@ func (endpoint *Endpoint) Validate() error {
 	if err := endpoint.Path.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
+	if err := endpoint.HttpMethod.Validate(); err != nil {
+		return errors.WithStack(err)
+	}
+	if err := endpoint.ContentType.Validate(); err != nil {
+		return err
+	}
 	endpoint.SetValidated()
 	return nil
 }
@@ -75,4 +81,24 @@ type EndpointRequest struct {
 	RequestData rsjson.MapJson    `json:"request_data" gorm:"Type:JSON"`
 	Header      rsjson.MapJson    `json:"header" gorm:"Type:JSON"`
 	QueryParam  rsjson.MapJson    `json:"query_param" gorm:"Type:JSON"`
+}
+
+func (e EndpointRequest) Validate() error {
+	if rsvalid.IsZero(
+		e.Path,
+		e.HttpMethod,
+		e.ContentType,
+	) {
+		return errors.Wrap(rserrors.ErrInvalidParameter, "EndpointRequest")
+	}
+	if err := e.Path.Validate(); err != nil {
+		return errors.WithStack(err)
+	}
+	if err := e.HttpMethod.Validate(); err != nil {
+		return errors.WithStack(err)
+	}
+	if err := e.ContentType.Validate(); err != nil {
+		return err
+	}
+	return nil
 }

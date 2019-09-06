@@ -66,6 +66,30 @@ func TestEndpoint_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid parameter",
+			fields: fields{
+				WebServiceId: 1,
+				Path:         "/v1/test",
+				HttpMethod:   "invalid",
+				ContentType:  "application/json",
+				Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid parameter",
+			fields: fields{
+				WebServiceId: 1,
+				Path:         "/v1/test",
+				HttpMethod:   "GET",
+				ContentType:  "invalid",
+				Created:      time.Now(),
+				LastModified: time.Now(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -275,6 +299,98 @@ func TestNewEndpoint(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestEndpointRequest_Validate(t *testing.T) {
+	type fields struct {
+		Path        http.EndpointPath
+		HttpMethod  http.Method
+		ContentType http.ContentType
+		RequestData rsjson.MapJson
+		Header      rsjson.MapJson
+		QueryParam  rsjson.MapJson
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "pass",
+			fields: fields{
+				Path:        "/path/to/file",
+				HttpMethod:  http.MethodGet,
+				ContentType: http.MIMEApplicationJSON,
+				RequestData: nil,
+				Header:      nil,
+				QueryParam:  nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid parameter",
+			fields: fields{
+				// Path:        "/path/to/file",
+				HttpMethod:  http.MethodGet,
+				ContentType: http.MIMEApplicationJSON,
+				RequestData: nil,
+				Header:      nil,
+				QueryParam:  nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid parameter",
+			fields: fields{
+				Path:        "/???/to/file",
+				HttpMethod:  http.MethodGet,
+				ContentType: http.MIMEApplicationJSON,
+				RequestData: nil,
+				Header:      nil,
+				QueryParam:  nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid parameter",
+			fields: fields{
+				Path:        "/path/to/file",
+				HttpMethod:  "invalid",
+				ContentType: http.MIMEApplicationJSON,
+				RequestData: nil,
+				Header:      nil,
+				QueryParam:  nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid parameter",
+			fields: fields{
+				Path:        "/path/to/file",
+				HttpMethod:  http.MethodGet,
+				ContentType: "invalid",
+				RequestData: nil,
+				Header:      nil,
+				QueryParam:  nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := EndpointRequest{
+				Path:        tt.fields.Path,
+				HttpMethod:  tt.fields.HttpMethod,
+				ContentType: tt.fields.ContentType,
+				RequestData: tt.fields.RequestData,
+				Header:      tt.fields.Header,
+				QueryParam:  tt.fields.QueryParam,
+			}
+			if err := e.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }
