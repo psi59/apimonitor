@@ -10,10 +10,10 @@ import (
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/amerr"
-	"github.com/realsangil/apimonitor/pkg/http"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	mocks2 "github.com/realsangil/apimonitor/pkg/rsdb/mocks"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/rsjson"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 	"github.com/realsangil/apimonitor/repositories"
@@ -71,8 +71,8 @@ func TestEndpointServiceImpl_CreateEndpoint(t *testing.T) {
 	webService := &models.WebService{Id: 1}
 	request := models.EndpointRequest{
 		Path:        "/users",
-		HttpMethod:  http.MethodPost,
-		ContentType: http.MIMEApplicationJSON,
+		HttpMethod:  rshttp.MethodPost,
+		ContentType: rshttp.MIMEApplicationJSON,
 		RequestData: rsjson.MapJson{
 			"name":   "sangil",
 			"gender": "male",
@@ -234,6 +234,100 @@ func TestEndpointServiceImpl_CreateEndpoint(t *testing.T) {
 			got, gotErr := service.CreateEndpoint(tt.args.webService, tt.args.request)
 			assert.Equal(t, tt.wantErr, gotErr)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestEndpointServiceImpl_GetEndpointById(t *testing.T) {
+	testutils.MonkeyAll()
+
+	endpointWithId := &models.Endpoint{Id: 1}
+	endpoint := &models.Endpoint{
+		Id:           1,
+		WebServiceId: 1,
+		Path:         "/path/to/uri",
+		HttpMethod:   rshttp.MethodGet,
+		ContentType:  rshttp.MIMEApplicationJSON,
+		RequestData:  nil,
+		Header:       nil,
+		QueryParam:   nil,
+		Created:      time.Now(),
+		LastModified: time.Now(),
+	}
+
+	type args struct {
+		endpoint *models.Endpoint
+	}
+	tests := []struct {
+		name     string
+		args     args
+		mockFunc endpointMockFunc
+		want     *models.Endpoint
+		wantErr  *amerr.ErrorWithLanguage
+	}{
+		{
+			name: "pass",
+			args: args{
+				endpoint: endpointWithId,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+				mockEndpointRepository.On("GetById", rsdb.GetConnection(), endpointWithId).
+					Run(func(args mock.Arguments) {
+						arg := args.Get(1).(*models.Endpoint)
+						*arg = *endpoint
+					}).Return(nil)
+			},
+			want:    endpoint,
+			wantErr: nil,
+		},
+		{
+			name: "endpoint not found",
+			args: args{
+				endpoint: endpointWithId,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+				mockEndpointRepository.On("GetById", rsdb.GetConnection(), endpointWithId).
+					Return(rsdb.ErrRecordNotFound)
+			},
+			want:    nil,
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrEndpointNotFound),
+		},
+		{
+			name: "unexpected Repository.GetById error",
+			args: args{
+				endpoint: endpointWithId,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+				mockEndpointRepository.On("GetById", rsdb.GetConnection(), endpointWithId).
+					Return(rserrors.ErrUnexpected)
+			},
+			want:    nil,
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "invalid endpoint",
+			args: args{
+				endpoint: &models.Endpoint{},
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {},
+			want:     nil,
+			wantErr:  amerr.GetErrInternalServer(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockEndpointRepository := &mocks.EndpointRepository{}
+			mockConn := &mocks2.Connection{}
+			testutils.MonkeyGetConnection(mockConn)
+			tt.mockFunc(mockConn, mockEndpointRepository)
+
+			service := &EndpointServiceImpl{
+				endpointRepository: mockEndpointRepository,
+			}
+			assert.Equal(t, tt.wantErr, service.GetEndpointById(tt.args.endpoint))
+			if tt.wantErr == nil {
+				assert.Equal(t, tt.want, tt.args.endpoint)
+			}
 		})
 	}
 }

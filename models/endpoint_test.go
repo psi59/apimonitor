@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/realsangil/apimonitor/pkg/http"
+	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/rsjson"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
@@ -16,9 +16,9 @@ func TestEndpoint_Validate(t *testing.T) {
 		DefaultValidateChecker DefaultValidateChecker
 		Id                     int64
 		WebServiceId           int64
-		Path                   http.EndpointPath
-		HttpMethod             http.Method
-		ContentType            http.ContentType
+		Path                   rshttp.EndpointPath
+		HttpMethod             rshttp.Method
+		ContentType            rshttp.ContentType
 		RequestData            rsjson.MapJson
 		Header                 rsjson.MapJson
 		QueryParam             rsjson.MapJson
@@ -139,8 +139,8 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: EndpointRequest{
 					Path:        "/path/to/file",
-					HttpMethod:  http.MethodGet,
-					ContentType: http.MIMEApplicationJSON,
+					HttpMethod:  rshttp.MethodGet,
+					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
 					QueryParam:  nil,
@@ -153,8 +153,8 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: EndpointRequest{
 					Path:        "/path/to/file",
-					HttpMethod:  http.MethodGet,
-					ContentType: http.MIMEApplicationJSON,
+					HttpMethod:  rshttp.MethodGet,
+					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
 					QueryParam:  nil,
@@ -167,8 +167,8 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: EndpointRequest{
 					Path:        "/???/asdas",
-					HttpMethod:  http.MethodGet,
-					ContentType: http.MIMEApplicationJSON,
+					HttpMethod:  rshttp.MethodGet,
+					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
 					QueryParam:  nil,
@@ -182,7 +182,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 				request: EndpointRequest{
 					Path: "/path/to/file",
 					// HttpMethod:  http.MethodGet,
-					ContentType: http.MIMEApplicationJSON,
+					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
 					QueryParam:  nil,
@@ -195,7 +195,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: EndpointRequest{
 					Path:       "/path/to/file",
-					HttpMethod: http.MethodGet,
+					HttpMethod: rshttp.MethodGet,
 					// ContentType: http.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
@@ -227,8 +227,8 @@ func TestNewEndpoint(t *testing.T) {
 
 	request := EndpointRequest{
 		Path:        "/path/to/file",
-		HttpMethod:  http.MethodGet,
-		ContentType: http.MIMEApplicationJSON,
+		HttpMethod:  rshttp.MethodGet,
+		ContentType: rshttp.MIMEApplicationJSON,
 	}
 
 	type args struct {
@@ -305,9 +305,9 @@ func TestNewEndpoint(t *testing.T) {
 
 func TestEndpointRequest_Validate(t *testing.T) {
 	type fields struct {
-		Path        http.EndpointPath
-		HttpMethod  http.Method
-		ContentType http.ContentType
+		Path        rshttp.EndpointPath
+		HttpMethod  rshttp.Method
+		ContentType rshttp.ContentType
 		RequestData rsjson.MapJson
 		Header      rsjson.MapJson
 		QueryParam  rsjson.MapJson
@@ -321,8 +321,8 @@ func TestEndpointRequest_Validate(t *testing.T) {
 			name: "pass",
 			fields: fields{
 				Path:        "/path/to/file",
-				HttpMethod:  http.MethodGet,
-				ContentType: http.MIMEApplicationJSON,
+				HttpMethod:  rshttp.MethodGet,
+				ContentType: rshttp.MIMEApplicationJSON,
 				RequestData: nil,
 				Header:      nil,
 				QueryParam:  nil,
@@ -333,8 +333,8 @@ func TestEndpointRequest_Validate(t *testing.T) {
 			name: "invalid parameter",
 			fields: fields{
 				// Path:        "/path/to/file",
-				HttpMethod:  http.MethodGet,
-				ContentType: http.MIMEApplicationJSON,
+				HttpMethod:  rshttp.MethodGet,
+				ContentType: rshttp.MIMEApplicationJSON,
 				RequestData: nil,
 				Header:      nil,
 				QueryParam:  nil,
@@ -345,8 +345,8 @@ func TestEndpointRequest_Validate(t *testing.T) {
 			name: "invalid parameter",
 			fields: fields{
 				Path:        "/???/to/file",
-				HttpMethod:  http.MethodGet,
-				ContentType: http.MIMEApplicationJSON,
+				HttpMethod:  rshttp.MethodGet,
+				ContentType: rshttp.MIMEApplicationJSON,
 				RequestData: nil,
 				Header:      nil,
 				QueryParam:  nil,
@@ -358,7 +358,7 @@ func TestEndpointRequest_Validate(t *testing.T) {
 			fields: fields{
 				Path:        "/path/to/file",
 				HttpMethod:  "invalid",
-				ContentType: http.MIMEApplicationJSON,
+				ContentType: rshttp.MIMEApplicationJSON,
 				RequestData: nil,
 				Header:      nil,
 				QueryParam:  nil,
@@ -369,7 +369,7 @@ func TestEndpointRequest_Validate(t *testing.T) {
 			name: "invalid parameter",
 			fields: fields{
 				Path:        "/path/to/file",
-				HttpMethod:  http.MethodGet,
+				HttpMethod:  rshttp.MethodGet,
 				ContentType: "invalid",
 				RequestData: nil,
 				Header:      nil,

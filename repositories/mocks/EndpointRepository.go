@@ -3,6 +3,7 @@
 package mocks
 
 import mock "github.com/stretchr/testify/mock"
+import models "github.com/realsangil/apimonitor/models"
 
 import rsdb "github.com/realsangil/apimonitor/pkg/rsdb"
 import rsmodel "github.com/realsangil/apimonitor/pkg/rsmodel"
@@ -75,6 +76,20 @@ func (_m *EndpointRepository) GetById(tx rsdb.Connection, id rsmodel.ValidatedOb
 	var r0 error
 	if rf, ok := ret.Get(0).(func(rsdb.Connection, rsmodel.ValidatedObject) error); ok {
 		r0 = rf(tx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetByIdAndWebServiceId provides a mock function with given fields: conn, endpoint
+func (_m *EndpointRepository) GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Endpoint) error {
+	ret := _m.Called(conn, endpoint)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(rsdb.Connection, *models.Endpoint) error); ok {
+		r0 = rf(conn, endpoint)
 	} else {
 		r0 = ret.Error(0)
 	}

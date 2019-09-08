@@ -9,13 +9,24 @@ import (
 
 type EndpointRepository interface {
 	rsdb.Repository
+	GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Endpoint) error
 }
 
 type EndpointRepositoryImpl struct {
 	rsdb.Repository
 }
 
-func (endpointRepositoryImpl EndpointRepositoryImpl) CreateTable(transaction rsdb.Connection) error {
+func (repository *EndpointRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Endpoint) error {
+	if err := conn.Conn().
+		Where("web_service_id=? AND id=?", endpoint.WebServiceId, endpoint.Id).
+		First(endpoint).Error; err != nil {
+		return rsdb.HandleSQLError(err)
+	}
+
+	return nil
+}
+
+func (repository EndpointRepositoryImpl) CreateTable(transaction rsdb.Connection) error {
 	m := &models.Endpoint{}
 	tx := transaction.Conn()
 	if tx.HasTable(m) {

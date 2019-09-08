@@ -39,3 +39,23 @@ Content-Type: application/json
 }
 
 ###
+
+# 엔드포인트 생성
+POST {{apiAddr}}/{{apiVersion}}/webservices/{{WebServiceId}}/endpoints
+Content-Type: application/json
+
+{
+  "path": "/test",
+  "http_method": "GET",
+  "content_type": "application/json",
+  "request_type": null,
+  "header": null,
+  "query_param": null
+}
+###
+
+# 엔드포인트 조회
+GET {{apiAddr}}/{{apiVersion}}/endpoints/{{EndpointId}}
+Content-Type: application/json
+
+###

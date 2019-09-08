@@ -91,7 +91,13 @@ func main() {
 
 		}
 
-		// v1Endpoint := v1.Group("/endpoints")
+		v1Endpoint := v1.Group("/endpoints")
+		{
+			v1OneEndpoint := v1Endpoint.Group(fmt.Sprintf("/:%s", handlers.EndpointIdParam))
+			{
+				v1OneEndpoint.GET("", endpointHandler.GetEndpoint)
+			}
+		}
 	}
 
 	e.Logger.Fatal(e.Start(":1323"))

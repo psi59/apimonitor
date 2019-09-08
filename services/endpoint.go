@@ -13,6 +13,7 @@ import (
 
 type EndpointService interface {
 	CreateEndpoint(webService *models.WebService, request models.EndpointRequest) (*models.Endpoint, *amerr.ErrorWithLanguage)
+	GetEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage
 }
 
 type EndpointServiceImpl struct {
@@ -44,6 +45,25 @@ func (service *EndpointServiceImpl) CreateEndpoint(webService *models.WebService
 	}
 
 	return endpoint, nil
+}
+
+func (service *EndpointServiceImpl) GetEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage {
+	if rsvalid.IsZero(endpoint, endpoint.Id) {
+		rslog.Errorf("invalid endpoint: id='%v'", endpoint.Id)
+		return amerr.GetErrInternalServer()
+	}
+
+	if err := service.endpointRepository.GetById(rsdb.GetConnection(), endpoint); err != nil {
+		switch err {
+		case rsdb.ErrRecordNotFound:
+			return amerr.GetErrorsFromCode(amerr.ErrEndpointNotFound)
+		default:
+			rslog.Error(err)
+			return amerr.GetErrInternalServer()
+		}
+	}
+
+	return nil
 }
 
 func NewEndpointService(endpointRepository repositories.EndpointRepository) (EndpointService, error) {

@@ -10,6 +10,7 @@ const (
 
 	ErrNotFound           = 404
 	ErrWebServiceNotFound = 4041
+	ErrEndpointNotFound   = 4042
 
 	ErrConflict             = 409
 	ErrDuplicatedWebService = 4091
@@ -35,6 +36,9 @@ var (
 		),
 		ErrWebServiceNotFound: newErrorWithLanguage(
 			newError(http.StatusNotFound, ErrWebServiceNotFound, "해당 웹서비스를 찾을 수 없습니다."),
+		),
+		ErrEndpointNotFound: newErrorWithLanguage(
+			newError(http.StatusNotFound, ErrEndpointNotFound, "해당 엔드포인트를 찾을 수 없습니다."),
 		),
 
 		ErrDuplicatedWebService: newErrorWithLanguage(
