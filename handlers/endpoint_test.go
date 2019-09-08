@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/testutils"
+	"github.com/realsangil/apimonitor/services"
 	mocks2 "github.com/realsangil/apimonitor/services/mocks"
 )
 
@@ -250,6 +252,124 @@ func TestEndpointHandlerImpl_GetEndpoint(t *testing.T) {
 				endpointService:   mockEndpointService,
 			}
 			assert.Equal(t, tt.wantErr, handler.GetEndpoint(mockContext))
+		})
+	}
+}
+
+func TestEndpointHandlerImpl_DeleteEndpoint(t *testing.T) {
+	testutils.MonkeyAll()
+
+	zeroInt64 := int64(0)
+	endpointId := int64(1)
+
+	endpointWithId := &models.Endpoint{Id: endpointId}
+
+	tests := []struct {
+		name     string
+		mockFunc endpointMockFunc
+		wantErr  error
+	}{
+		{
+			name: "pass",
+			mockFunc: func(mockContext *mocks.Context, mockEndpointService *mocks2.EndpointService, mockWebServiceService *mocks2.WebServiceService) {
+				setContextLanguageForTest(mockContext)
+				mockContext.On("ParamInt64", EndpointIdParam).Return(endpointId, nil)
+
+				mockEndpointService.On("DeleteEndpointById", endpointWithId).
+					Return(nil)
+
+				mockContext.On("JSON", http.StatusOK, nil).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "invalid endpoint id parameter",
+			mockFunc: func(mockContext *mocks.Context, mockEndpointService *mocks2.EndpointService, webServiceService *mocks2.WebServiceService) {
+				setContextLanguageForTest(mockContext)
+				mockContext.On("ParamInt64", EndpointIdParam).Return(zeroInt64, rserrors.ErrInvalidParameter)
+			},
+			wantErr: amerr.GetErrorsFromCode(amerr.ErrEndpointNotFound).GetErrFromLanguage(langForTest),
+		},
+		{
+			name: "unexpected EndpointService.GetEndpointById error",
+			mockFunc: func(mockContext *mocks.Context, mockEndpointService *mocks2.EndpointService, webServiceService *mocks2.WebServiceService) {
+				setContextLanguageForTest(mockContext)
+				mockContext.On("ParamInt64", EndpointIdParam).Return(endpointId, nil)
+
+				mockEndpointService.On("DeleteEndpointById", endpointWithId).
+					Return(amerr.GetErrInternalServer())
+			},
+			wantErr: amerr.GetErrInternalServer().GetErrFromLanguage(langForTest),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockContext := &mocks.Context{}
+			mockEndpointService := &mocks2.EndpointService{}
+			mockWebServiceService := &mocks2.WebServiceService{}
+
+			tt.mockFunc(mockContext, mockEndpointService, mockWebServiceService)
+			handler := &EndpointHandlerImpl{
+				webServiceService: mockWebServiceService,
+				endpointService:   mockEndpointService,
+			}
+			assert.Equal(t, tt.wantErr, handler.DeleteEndpoint(mockContext))
+		})
+	}
+}
+
+func TestNewEndpointHandler(t *testing.T) {
+	type args struct {
+		webServiceService services.WebServiceService
+		endpointService   services.EndpointService
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    EndpointHandler
+		wantErr bool
+	}{
+		{
+			name: "pass",
+			args: args{
+				webServiceService: &mocks2.WebServiceService{},
+				endpointService:   &mocks2.EndpointService{},
+			},
+			want: &EndpointHandlerImpl{
+				webServiceService: &mocks2.WebServiceService{},
+				endpointService:   &mocks2.EndpointService{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid field",
+			args: args{
+				// webServiceService: &mocks2.WebServiceService{},
+				endpointService: &mocks2.EndpointService{},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid field",
+			args: args{
+				webServiceService: &mocks2.WebServiceService{},
+				// endpointService:   &mocks2.EndpointService{},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewEndpointHandler(tt.args.webServiceService, tt.args.endpointService)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewEndpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewEndpointHandler() got = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

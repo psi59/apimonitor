@@ -22,6 +22,7 @@ const (
 type EndpointHandler interface {
 	CreateEndpoint(c echo.Context) error
 	GetEndpoint(c echo.Context) error
+	DeleteEndpoint(c echo.Context) error
 }
 
 type EndpointHandlerImpl struct {
@@ -78,6 +79,26 @@ func (handler *EndpointHandlerImpl) GetEndpoint(c echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, endpoint)
+}
+
+func (handler *EndpointHandlerImpl) DeleteEndpoint(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lang := ctx.Language()
+	endpointId, _ := ctx.ParamInt64(EndpointIdParam)
+	if rsvalid.IsZero(endpointId) {
+		return amerr.GetErrorsFromCode(amerr.ErrEndpointNotFound).GetErrFromLanguage(lang)
+	}
+
+	endpoint := &models.Endpoint{Id: endpointId}
+	if err := handler.endpointService.DeleteEndpointById(endpoint); err != nil {
+		return err.GetErrFromLanguage(lang)
+	}
+
+	return ctx.JSON(http.StatusOK, nil)
 }
 
 func NewEndpointHandler(webServiceService services.WebServiceService, endpointService services.EndpointService) (EndpointHandler, error) {

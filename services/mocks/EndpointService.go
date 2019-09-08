@@ -36,6 +36,22 @@ func (_m *EndpointService) CreateEndpoint(webService *models.WebService, request
 	return r0, r1
 }
 
+// DeleteEndpointById provides a mock function with given fields: endpoint
+func (_m *EndpointService) DeleteEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage {
+	ret := _m.Called(endpoint)
+
+	var r0 *amerr.ErrorWithLanguage
+	if rf, ok := ret.Get(0).(func(*models.Endpoint) *amerr.ErrorWithLanguage); ok {
+		r0 = rf(endpoint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*amerr.ErrorWithLanguage)
+		}
+	}
+
+	return r0
+}
+
 // GetEndpointById provides a mock function with given fields: endpoint
 func (_m *EndpointService) GetEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage {
 	ret := _m.Called(endpoint)

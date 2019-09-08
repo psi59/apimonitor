@@ -14,6 +14,7 @@ import (
 type EndpointService interface {
 	CreateEndpoint(webService *models.WebService, request models.EndpointRequest) (*models.Endpoint, *amerr.ErrorWithLanguage)
 	GetEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage
+	DeleteEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage
 }
 
 type EndpointServiceImpl struct {
@@ -48,8 +49,13 @@ func (service *EndpointServiceImpl) CreateEndpoint(webService *models.WebService
 }
 
 func (service *EndpointServiceImpl) GetEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage {
-	if rsvalid.IsZero(endpoint, endpoint.Id) {
-		rslog.Errorf("invalid endpoint: id='%v'", endpoint.Id)
+	if rsvalid.IsZero(endpoint) {
+		rslog.Error(errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint"))
+		return amerr.GetErrInternalServer()
+	}
+
+	if rsvalid.IsZero(endpoint.Id) {
+		rslog.Error(errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint.Id"))
 		return amerr.GetErrInternalServer()
 	}
 
@@ -61,6 +67,25 @@ func (service *EndpointServiceImpl) GetEndpointById(endpoint *models.Endpoint) *
 			rslog.Error(err)
 			return amerr.GetErrInternalServer()
 		}
+	}
+
+	return nil
+}
+
+func (service *EndpointServiceImpl) DeleteEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage {
+	if rsvalid.IsZero(endpoint) {
+		rslog.Error(errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint"))
+		return amerr.GetErrInternalServer()
+	}
+
+	if rsvalid.IsZero(endpoint.Id) {
+		rslog.Error(errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint.Id"))
+		return amerr.GetErrInternalServer()
+	}
+
+	if err := service.endpointRepository.DeleteById(rsdb.GetConnection(), endpoint); err != nil {
+		rslog.Error(err)
+		return amerr.GetErrInternalServer()
 	}
 
 	return nil

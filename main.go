@@ -96,6 +96,7 @@ func main() {
 			v1OneEndpoint := v1Endpoint.Group(fmt.Sprintf("/:%s", handlers.EndpointIdParam))
 			{
 				v1OneEndpoint.GET("", endpointHandler.GetEndpoint)
+				v1OneEndpoint.DELETE("", endpointHandler.DeleteEndpoint)
 			}
 		}
 	}

@@ -307,6 +307,15 @@ func TestEndpointServiceImpl_GetEndpointById(t *testing.T) {
 		{
 			name: "invalid endpoint",
 			args: args{
+				endpoint: nil,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {},
+			want:     nil,
+			wantErr:  amerr.GetErrInternalServer(),
+		},
+		{
+			name: "invalid endpoint",
+			args: args{
 				endpoint: &models.Endpoint{},
 			},
 			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {},
@@ -328,6 +337,76 @@ func TestEndpointServiceImpl_GetEndpointById(t *testing.T) {
 			if tt.wantErr == nil {
 				assert.Equal(t, tt.want, tt.args.endpoint)
 			}
+		})
+	}
+}
+
+func TestEndpointServiceImpl_DeleteEndpointById(t *testing.T) {
+	testutils.MonkeyAll()
+
+	endpointWithId := &models.Endpoint{Id: 1}
+
+	type args struct {
+		endpoint *models.Endpoint
+	}
+	tests := []struct {
+		name     string
+		args     args
+		mockFunc endpointMockFunc
+		wantErr  *amerr.ErrorWithLanguage
+	}{
+		{
+			name: "pass",
+			args: args{
+				endpoint: endpointWithId,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+				mockEndpointRepository.On("DeleteById", rsdb.GetConnection(), endpointWithId).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "invalid parameter",
+			args: args{
+				endpoint: nil,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "invalid parameter",
+			args: args{
+				endpoint: &models.Endpoint{},
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+		{
+			name: "unexpected EndpointRepository error",
+			args: args{
+				endpoint: endpointWithId,
+			},
+			mockFunc: func(mockConn *mocks2.Connection, mockEndpointRepository *mocks.EndpointRepository) {
+				mockEndpointRepository.On("DeleteById", rsdb.GetConnection(), endpointWithId).
+					Return(rserrors.ErrUnexpected)
+			},
+			wantErr: amerr.GetErrInternalServer(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockEndpointRepository := &mocks.EndpointRepository{}
+			mockConn := &mocks2.Connection{}
+			testutils.MonkeyGetConnection(mockConn)
+			tt.mockFunc(mockConn, mockEndpointRepository)
+
+			service := &EndpointServiceImpl{
+				endpointRepository: mockEndpointRepository,
+			}
+
+			assert.Equal(t, tt.wantErr, service.DeleteEndpointById(tt.args.endpoint))
 		})
 	}
 }
