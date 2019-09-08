@@ -5,11 +5,13 @@ import (
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
+	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
 type EndpointRepository interface {
 	rsdb.Repository
 	GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Endpoint) error
+	GetList(conn rsdb.Connection, items *[]*models.EndpointListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error)
 }
 
 type EndpointRepositoryImpl struct {
@@ -24,6 +26,30 @@ func (repository *EndpointRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Conne
 	}
 
 	return nil
+}
+
+func (repository *EndpointRepositoryImpl) GetList(conn rsdb.Connection, items *[]*models.EndpointListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
+	where := rsdb.NewEmptyQuery()
+	if v, exist := filter.Conditions["web_server_id"]; exist {
+		w, _ := rsdb.NewQuery("web_server_id=?", v)
+		where.And(w)
+	}
+
+	query := conn.Conn().Model(items).Where(where.Where(), where.Values()...)
+	if !rsvalid.IsZero(orders) {
+		query = query.Order(orders.String())
+	}
+
+	var totalCount int
+	if err := query.Count(&totalCount).Error; err != nil {
+		return 0, rsdb.HandleSQLError(err)
+	}
+
+	if err := query.Preload("WebService").Offset(filter.Offset()).Limit(filter.NumItem).Find(items).Error; err != nil {
+		return 0, rsdb.HandleSQLError(err)
+	}
+
+	return totalCount, nil
 }
 
 func (repository EndpointRepositoryImpl) CreateTable(transaction rsdb.Connection) error {

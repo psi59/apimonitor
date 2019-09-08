@@ -23,6 +23,7 @@ type EndpointHandler interface {
 	CreateEndpoint(c echo.Context) error
 	GetEndpoint(c echo.Context) error
 	DeleteEndpoint(c echo.Context) error
+	GetEndpointList(c echo.Context) error
 }
 
 type EndpointHandlerImpl struct {
@@ -99,6 +100,44 @@ func (handler *EndpointHandlerImpl) DeleteEndpoint(c echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, nil)
+}
+
+func (handler *EndpointHandlerImpl) GetEndpointList(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lang := ctx.Language()
+
+	pageInt64, err := ctx.QueryParamInt64("page", 1)
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
+	}
+
+	numItemInt64, err := ctx.QueryParamInt64("num_item", 20)
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
+	}
+
+	webServiceIdInt64, _ := ctx.QueryParamInt64("web_service_id", 0)
+	if webServiceIdInt64 == 0 {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
+	}
+
+	list, aerr := handler.endpointService.GetEndpointList(models.EndpointListRequest{
+		Page:         int(pageInt64),
+		NumItem:      int(numItemInt64),
+		WebServiceId: 0,
+	})
+	if aerr != nil {
+		return aerr.GetErrFromLanguage(lang)
+	}
+
+	return ctx.JSON(http.StatusOK, list)
 }
 
 func NewEndpointHandler(webServiceService services.WebServiceService, endpointService services.EndpointService) (EndpointHandler, error) {

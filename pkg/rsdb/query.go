@@ -34,7 +34,11 @@ type queryImpl struct {
 }
 
 func (query *queryImpl) combineQueryWithOperator(q Query, operator queryOperator) Query {
-	query.where = fmt.Sprintf("(%s) %s (%s)", query.Where(), operator, q.Where())
+	if w := query.Where(); rsvalid.IsZero(w) {
+		query.where = q.Where()
+	} else {
+		query.where = fmt.Sprintf("(%s) %s (%s)", query.Where(), operator, q.Where())
+	}
 	query.values = append(query.values, q.Values()...)
 	return query
 }
@@ -66,4 +70,10 @@ func NewQuery(w string, values ...interface{}) (Query, error) {
 		where:  w,
 		values: values,
 	}, nil
+}
+
+func NewEmptyQuery() Query {
+	return &queryImpl{
+		values: make([]interface{}, 0),
+	}
 }

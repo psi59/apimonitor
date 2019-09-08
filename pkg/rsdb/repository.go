@@ -5,7 +5,9 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/VividCortex/mysqlerr"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -23,6 +25,8 @@ const (
 	ErrInvalidModel         sierrors.Error = "invalid model"
 	ErrForeignKeyConstraint sierrors.Error = "foreign key constraint fails"
 )
+
+type MockFunc func(mock sqlmock.Sqlmock)
 
 type Repository interface {
 	Create(tx Connection, src rsmodel.ValidatedObject) error
@@ -159,6 +163,10 @@ type ListFilter struct {
 	Conditions map[string]interface{}
 }
 
+func (listFilter ListFilter) Offset() int {
+	return (listFilter.Page - 1) * listFilter.NumItem
+}
+
 type Orders []Order
 
 func (orders Orders) String() string {
@@ -198,4 +206,24 @@ func CreateTables(repos ...Repository) error {
 		return errors.WithStack(err)
 	}
 	return nil
+}
+
+func AssertMockDatabase(t *testing.T, mock sqlmock.Sqlmock) {
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	gormDB, gerr := gorm.Open("test", db)
+	if gerr != nil {
+		return nil, nil, gerr
+	}
+	gormDB.LogMode(true)
+	return gormDB, mock, nil
 }

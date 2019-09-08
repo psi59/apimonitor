@@ -7,6 +7,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
+	"github.com/realsangil/apimonitor/pkg/rsmodel"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
@@ -15,6 +16,7 @@ type EndpointService interface {
 	CreateEndpoint(webService *models.WebService, request models.EndpointRequest) (*models.Endpoint, *amerr.ErrorWithLanguage)
 	GetEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage
 	DeleteEndpointById(endpoint *models.Endpoint) *amerr.ErrorWithLanguage
+	GetEndpointList(request models.EndpointListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type EndpointServiceImpl struct {
@@ -89,6 +91,35 @@ func (service *EndpointServiceImpl) DeleteEndpointById(endpoint *models.Endpoint
 	}
 
 	return nil
+}
+
+func (service *EndpointServiceImpl) GetEndpointList(request models.EndpointListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
+	filter := rsdb.ListFilter{
+		Page:    request.Page,
+		NumItem: request.NumItem,
+		Conditions: map[string]interface{}{
+			"web_service_id": request.WebServiceId,
+		},
+	}
+
+	items := make([]*models.EndpointListItem, 0)
+	totalCount, err := service.endpointRepository.GetList(rsdb.GetConnection(), &items, filter, rsdb.Orders{
+		rsdb.Order{
+			Field: "path",
+			IsASC: true,
+		},
+	})
+
+	if err != nil {
+		return nil, amerr.GetErrInternalServer()
+	}
+
+	return &rsmodel.PaginatedList{
+		CurrentPage: request.Page,
+		NumItem:     request.NumItem,
+		TotalCount:  totalCount,
+		Items:       items,
+	}, nil
 }
 
 func NewEndpointService(endpointRepository repositories.EndpointRepository) (EndpointService, error) {

@@ -93,6 +93,8 @@ func main() {
 
 		v1Endpoint := v1.Group("/endpoints")
 		{
+			v1Endpoint.GET("", endpointHandler.GetEndpointList)
+
 			v1OneEndpoint := v1Endpoint.Group(fmt.Sprintf("/:%s", handlers.EndpointIdParam))
 			{
 				v1OneEndpoint.GET("", endpointHandler.GetEndpoint)

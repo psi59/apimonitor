@@ -9,7 +9,7 @@ import (
 
 type MapJson map[string]interface{}
 
-func (mapJson *MapJson) Value() (driver.Value, error) {
+func (mapJson MapJson) Value() (driver.Value, error) {
 	return jsoniter.Marshal(mapJson)
 }
 
