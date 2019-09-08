@@ -44,7 +44,7 @@ func main() {
 	e.HTTPErrorHandler = middlewares.ErrorHandleMiddleware
 
 	webserviceRepository := repositories.NewWebServiceRepository()
-	endpointRepository := repositories.NewWebServiceRepository()
+	endpointRepository := repositories.NewEndpointRepository()
 
 	if err := rsdb.CreateTables(webserviceRepository, endpointRepository); err != nil {
 		logrus.Fatal(err)
@@ -55,7 +55,17 @@ func main() {
 		logrus.Fatal(err)
 	}
 
+	endpointService, err := services.NewEndpointService(endpointRepository)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	webServiceHandler, err := handlers.NewWebServiceHandler(webServiceService)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	endpointHandler, err := handlers.NewEndpointHandler(webServiceService, endpointService)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -66,10 +76,22 @@ func main() {
 		{
 			v1WebService.POST("", webServiceHandler.CreateWebService)
 			v1WebService.GET("", webServiceHandler.GetWebServiceList)
-			v1WebService.GET(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.GetWebServiceById)
-			v1WebService.DELETE(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.DeleteWebServiceById)
-			v1WebService.PUT(fmt.Sprintf("/:%s", handlers.WebServiceIdParam), webServiceHandler.UpdateWebServiceById)
+
+			v1OneWebService := v1WebService.Group(fmt.Sprintf("/:%s", handlers.WebServiceIdParam))
+			{
+				v1WebService.GET("", webServiceHandler.GetWebServiceById)
+				v1WebService.DELETE("", webServiceHandler.DeleteWebServiceById)
+				v1WebService.PUT("", webServiceHandler.UpdateWebServiceById)
+			}
+
+			v1OneWebServiceEndpoints := v1OneWebService.Group("/endpoints")
+			{
+				v1OneWebServiceEndpoints.POST("", endpointHandler.CreateEndpoint)
+			}
+
 		}
+
+		// v1Endpoint := v1.Group("/endpoints")
 	}
 
 	e.Logger.Fatal(e.Start(":1323"))
