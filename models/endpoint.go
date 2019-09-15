@@ -120,21 +120,23 @@ type EndpointListItem struct {
 }
 
 func (endpointListItem EndpointListItem) MarshalJSON() ([]byte, error) {
-	url := &url.URL{
+	endpointUrl := &url.URL{
 		Scheme: endpointListItem.WebService.HttpSchema,
 		Host:   endpointListItem.WebService.Host,
 		Path:   endpointListItem.Path.String(),
 	}
 	return json.Marshal(struct {
-		Id           int64         `json:"id"`
-		Url          string        `json:"url"`
-		HttpMethod   rshttp.Method `json:"http_method"`
-		Desc         string        `json:"desc"`
-		Created      time.Time     `json:"created"`
-		LastModified time.Time     `json:"last_modified"`
+		Id           int64               `json:"id"`
+		Path         rshttp.EndpointPath `json:"path"`
+		Url          string              `json:"url"`
+		HttpMethod   rshttp.Method       `json:"http_method"`
+		Desc         string              `json:"desc"`
+		Created      time.Time           `json:"created"`
+		LastModified time.Time           `json:"last_modified"`
 	}{
 		Id:           endpointListItem.Id,
-		Url:          url.String(),
+		Path:         endpointListItem.Path,
+		Url:          endpointUrl.String(),
 		HttpMethod:   endpointListItem.HttpMethod,
 		Desc:         endpointListItem.Desc,
 		Created:      endpointListItem.Created,

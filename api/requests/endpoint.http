@@ -4,9 +4,9 @@ Content-Type: application/json
 
 {
   "path": "test/post",
-  "http_method": "GET",
+  "http_method": "DELETE",
   "content_type": "application/json",
-  "request_type": null,
+  "request_data": null,
   "header": null,
   "query_param": null
 }

@@ -79,9 +79,9 @@ func main() {
 
 			v1OneWebService := v1WebService.Group(fmt.Sprintf("/:%s", handlers.WebServiceIdParam))
 			{
-				v1WebService.GET("", webServiceHandler.GetWebServiceById)
-				v1WebService.DELETE("", webServiceHandler.DeleteWebServiceById)
-				v1WebService.PUT("", webServiceHandler.UpdateWebServiceById)
+				v1OneWebService.GET("", webServiceHandler.GetWebServiceById)
+				v1OneWebService.DELETE("", webServiceHandler.DeleteWebServiceById)
+				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
 			}
 
 			v1OneWebServiceEndpoints := v1OneWebService.Group("/endpoints")
