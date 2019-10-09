@@ -30,8 +30,8 @@ func (repository *EndpointRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Conne
 
 func (repository *EndpointRepositoryImpl) GetList(conn rsdb.Connection, items *[]*models.EndpointListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
 	where := rsdb.NewEmptyQuery()
-	if v, exist := filter.Conditions["web_server_id"]; exist {
-		w, _ := rsdb.NewQuery("web_server_id=?", v)
+	if v, exist := filter.Conditions["web_service_id"]; exist {
+		w, _ := rsdb.NewQuery("web_service_id=?", v)
 		where.And(w)
 	}
 

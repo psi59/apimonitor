@@ -2,21 +2,35 @@ package repositories
 
 import (
 	"testing"
+	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
+	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
+
+var countColumn = []string{
+	"count",
+}
+
+var endpointListItemColumns = []string{
+	"id", "web_service_id", "path", "http_method", "desc", "created", "last_modified",
+}
 
 func TestEndpointRepositoryImpl_GetList(t *testing.T) {
 	testutils.MonkeyAll()
 
+	countRows := sqlmock.NewRows(countColumn).AddRow(int64(1))
+	rows := sqlmock.NewRows(endpointListItemColumns).AddRow(int64(1), int64(1), "/test", rshttp.MethodGet, "", time.Now(), time.Now())
+
 	type args struct {
 		items  *[]*models.EndpointListItem
 		filter rsdb.ListFilter
-		order  rsdb.Order
+		orders rsdb.Orders
 	}
 	tests := []struct {
 		name     string
@@ -36,11 +50,15 @@ func TestEndpointRepositoryImpl_GetList(t *testing.T) {
 						"web_service_id": int64(1),
 					},
 				},
-				order: rsdb.Order{},
+				orders: rsdb.Orders{},
 			},
-			mockFunc: nil,
-			want:     0,
-			wantErr:  nil,
+			mockFunc: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery(`SELECT count\(\*\)`).WithArgs(int64(1)).WillReturnRows(countRows)
+				mock.ExpectQuery("SELECT").WithArgs(int64(1)).WillReturnRows(rows)
+				mock.ExpectQuery(`SELECT \* FROM "web_services"`).WithArgs(int64(1)).WillReturnRows(rows)
+			},
+			want:    1,
+			wantErr: nil,
 		},
 	}
 	for _, tt := range tests {
@@ -56,7 +74,7 @@ func TestEndpointRepositoryImpl_GetList(t *testing.T) {
 			}
 			conn := rsdb.NewConnection(gormDB)
 
-			got, err := repository.GetList(conn, tt.args.items, tt.args.filter, tt.args.order)
+			got, err := repository.GetList(conn, tt.args.items, tt.args.filter, tt.args.orders)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err)
 		})

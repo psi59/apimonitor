@@ -3,7 +3,9 @@ package rshttp
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 )
@@ -63,7 +65,7 @@ func (endpointPath EndpointPath) Validate() error {
 type Method string
 
 func (method Method) String() string {
-	return string(method)
+	return strings.ToUpper(string(method))
 }
 
 func (method Method) Validate() error {
@@ -80,6 +82,15 @@ func (method Method) Validate() error {
 	default:
 		return errors.Wrap(rserrors.ErrInvalidParameter, "Method")
 	}
+	return nil
+}
+
+func (method *Method) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := jsoniter.Unmarshal(data, &str); err != nil {
+		return errors.WithStack(err)
+	}
+	*method = Method(strings.ToUpper(str))
 	return nil
 }
 

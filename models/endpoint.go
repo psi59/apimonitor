@@ -151,5 +151,5 @@ func (endpointListItem EndpointListItem) TableName() string {
 type EndpointListRequest struct {
 	Page         int
 	NumItem      int
-	WebServiceId int
+	WebServiceId int64
 }

@@ -131,7 +131,7 @@ func (handler *EndpointHandlerImpl) GetEndpointList(c echo.Context) error {
 	list, aerr := handler.endpointService.GetEndpointList(models.EndpointListRequest{
 		Page:         int(pageInt64),
 		NumItem:      int(numItemInt64),
-		WebServiceId: 0,
+		WebServiceId: webServiceIdInt64,
 	})
 	if aerr != nil {
 		return aerr.GetErrFromLanguage(lang)
