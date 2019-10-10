@@ -8,13 +8,13 @@ import (
 const (
 	ErrBadRequest = 400
 
-	ErrNotFound           = 404
-	ErrWebServiceNotFound = 4041
-	ErrEndpointNotFound   = 4042
+	ErrNotFound               = 404
+	ErrWebServiceNotFound     = 4041
+	ErrWebServiceTestNotFound = 4042
 
-	ErrConflict             = 409
-	ErrDuplicatedWebService = 4091
-	ErrDuplicatedEndpoint   = 4092
+	ErrConflict                 = 409
+	ErrDuplicatedWebService     = 4091
+	ErrDuplicatedWebServiceTest = 4092
 
 	ErrInternalServer = 500
 )
@@ -37,15 +37,15 @@ var (
 		ErrWebServiceNotFound: newErrorWithLanguage(
 			newError(http.StatusNotFound, ErrWebServiceNotFound, "해당 웹서비스를 찾을 수 없습니다."),
 		),
-		ErrEndpointNotFound: newErrorWithLanguage(
-			newError(http.StatusNotFound, ErrEndpointNotFound, "해당 엔드포인트를 찾을 수 없습니다."),
+		ErrWebServiceTestNotFound: newErrorWithLanguage(
+			newError(http.StatusNotFound, ErrWebServiceTestNotFound, "해당 테스트를 찾을 수 없습니다."),
 		),
 
 		ErrDuplicatedWebService: newErrorWithLanguage(
 			newError(http.StatusConflict, ErrDuplicatedWebService, "이미 같은 호스트의 웹서비스가 존재합니다."),
 		),
-		ErrDuplicatedEndpoint: newErrorWithLanguage(
-			newError(http.StatusConflict, ErrDuplicatedEndpoint, "이미 같은 엔드포인트가 존재합니다."),
+		ErrDuplicatedWebServiceTest: newErrorWithLanguage(
+			newError(http.StatusConflict, ErrDuplicatedWebServiceTest, "이미 같은 테스트가 존재합니다."),
 		),
 	}
 )

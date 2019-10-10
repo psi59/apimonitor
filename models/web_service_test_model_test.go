@@ -11,7 +11,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
 
-func TestEndpoint_Validate(t *testing.T) {
+func TestWebServiceTest_Validate(t *testing.T) {
 	type fields struct {
 		DefaultValidateChecker DefaultValidateChecker
 		Id                     int64
@@ -93,7 +93,7 @@ func TestEndpoint_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			endpoint := &Endpoint{
+			webServiceTest := &WebServiceTest{
 				DefaultValidateChecker: tt.fields.DefaultValidateChecker,
 				Id:                     tt.fields.Id,
 				WebServiceId:           tt.fields.WebServiceId,
@@ -106,14 +106,14 @@ func TestEndpoint_Validate(t *testing.T) {
 				Created:                tt.fields.Created,
 				LastModified:           tt.fields.LastModified,
 			}
-			if err := endpoint.Validate(); (err != nil) != tt.wantErr {
+			if err := webServiceTest.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestEndpoint_UpdateFromRequest(t *testing.T) {
+func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 	testutils.MonkeyAll()
 
 	mockRequestData := rsjson.MapJson{
@@ -127,7 +127,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 	}
 
 	type args struct {
-		request EndpointRequest
+		request WebServiceTestRequest
 	}
 	tests := []struct {
 		name    string
@@ -137,7 +137,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 		{
 			name: "pass",
 			args: args{
-				request: EndpointRequest{
+				request: WebServiceTestRequest{
 					Path:        "/path/to/file",
 					HttpMethod:  rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -151,7 +151,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 		{
 			name: "pass",
 			args: args{
-				request: EndpointRequest{
+				request: WebServiceTestRequest{
 					Path:        "/path/to/file",
 					HttpMethod:  rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -165,7 +165,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 		{
 			name: "invalid request",
 			args: args{
-				request: EndpointRequest{
+				request: WebServiceTestRequest{
 					Path:        "/???/asdas",
 					HttpMethod:  rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -179,7 +179,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 		{
 			name: "invalid request",
 			args: args{
-				request: EndpointRequest{
+				request: WebServiceTestRequest{
 					Path: "/path/to/file",
 					// HttpMethod:  http.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -193,7 +193,7 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 		{
 			name: "invalid request",
 			args: args{
-				request: EndpointRequest{
+				request: WebServiceTestRequest{
 					Path:       "/path/to/file",
 					HttpMethod: rshttp.MethodGet,
 					// ContentType: http.MIMEApplicationJSON,
@@ -207,25 +207,25 @@ func TestEndpoint_UpdateFromRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			endpoint := &Endpoint{
+			webServiceTest := &WebServiceTest{
 				WebServiceId: 1,
 				Created:      time.Now(),
 			}
-			if err := endpoint.UpdateFromRequest(tt.args.request); (err != nil) != tt.wantErr {
+			if err := webServiceTest.UpdateFromRequest(tt.args.request); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateFromRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestNewEndpoint(t *testing.T) {
+func TestNewWebServiceTest(t *testing.T) {
 	testutils.MonkeyAll()
 
 	webService := &WebService{
 		Id: 1,
 	}
 
-	request := EndpointRequest{
+	request := WebServiceTestRequest{
 		Path:        "/path/to/file",
 		HttpMethod:  rshttp.MethodGet,
 		ContentType: rshttp.MIMEApplicationJSON,
@@ -233,12 +233,12 @@ func TestNewEndpoint(t *testing.T) {
 
 	type args struct {
 		webService *WebService
-		request    EndpointRequest
+		request    WebServiceTestRequest
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *Endpoint
+		want    *WebServiceTest
 		wantErr bool
 	}{
 		{
@@ -247,7 +247,7 @@ func TestNewEndpoint(t *testing.T) {
 				webService: webService,
 				request:    request,
 			},
-			want: &Endpoint{
+			want: &WebServiceTest{
 				DefaultValidateChecker: ValidatedDefaultValidateChecker,
 				WebServiceId:           1,
 				Path:                   request.Path,
@@ -283,7 +283,7 @@ func TestNewEndpoint(t *testing.T) {
 			name: "invalid request",
 			args: args{
 				webService: webService,
-				request: EndpointRequest{
+				request: WebServiceTestRequest{
 					Path: "//??/asd",
 				},
 			},
@@ -293,7 +293,7 @@ func TestNewEndpoint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewEndpoint(tt.args.webService, tt.args.request)
+			got, err := NewWebServiceTest(tt.args.webService, tt.args.request)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -303,7 +303,7 @@ func TestNewEndpoint(t *testing.T) {
 	}
 }
 
-func TestEndpointRequest_Validate(t *testing.T) {
+func TestWebServiceTestRequest_Validate(t *testing.T) {
 	type fields struct {
 		Path        rshttp.EndpointPath
 		HttpMethod  rshttp.Method
@@ -380,7 +380,7 @@ func TestEndpointRequest_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := EndpointRequest{
+			e := WebServiceTestRequest{
 				Path:        tt.fields.Path,
 				HttpMethod:  tt.fields.HttpMethod,
 				ContentType: tt.fields.ContentType,

@@ -16,22 +16,22 @@ import (
 )
 
 const (
-	EndpointIdParam = "endpoint_id"
+	WebServiceTestIdParam = "webServiceTest_id"
 )
 
-type EndpointHandler interface {
-	CreateEndpoint(c echo.Context) error
-	GetEndpoint(c echo.Context) error
-	DeleteEndpoint(c echo.Context) error
-	GetEndpointList(c echo.Context) error
+type WebServiceTestHandler interface {
+	CreateWebServiceTest(c echo.Context) error
+	GetWebServiceTest(c echo.Context) error
+	DeleteWebServiceTest(c echo.Context) error
+	GetWebServiceTestList(c echo.Context) error
 }
 
-type EndpointHandlerImpl struct {
-	webServiceService services.WebServiceService
-	endpointService   services.EndpointService
+type WebServiceTestHandlerImpl struct {
+	webServiceService     services.WebServiceService
+	webServiceTestService services.WebServiceTestService
 }
 
-func (handler *EndpointHandlerImpl) CreateEndpoint(c echo.Context) error {
+func (handler *WebServiceTestHandlerImpl) CreateWebServiceTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
@@ -48,61 +48,61 @@ func (handler *EndpointHandlerImpl) CreateEndpoint(c echo.Context) error {
 		return err.GetErrFromLanguage(lang)
 	}
 
-	var request models.EndpointRequest
+	var request models.WebServiceTestRequest
 	if err := ctx.Bind(&request); err != nil {
 		rslog.Error(err)
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	endpoint, aerr := handler.endpointService.CreateEndpoint(webService, request)
+	webServiceTest, aerr := handler.webServiceTestService.CreateWebServiceTest(webService, request)
 	if aerr != nil {
 		return aerr.GetErrFromLanguage(lang)
 	}
 
-	return ctx.JSON(http.StatusOK, endpoint)
+	return ctx.JSON(http.StatusOK, webServiceTest)
 }
 
-func (handler *EndpointHandlerImpl) GetEndpoint(c echo.Context) error {
+func (handler *WebServiceTestHandlerImpl) GetWebServiceTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	lang := ctx.Language()
-	endpointId, _ := ctx.ParamInt64(EndpointIdParam)
-	if rsvalid.IsZero(endpointId) {
-		return amerr.GetErrorsFromCode(amerr.ErrEndpointNotFound).GetErrFromLanguage(lang)
+	webServiceTestId, _ := ctx.ParamInt64(WebServiceTestIdParam)
+	if rsvalid.IsZero(webServiceTestId) {
+		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
 	}
 
-	endpoint := &models.Endpoint{Id: endpointId}
-	if err := handler.endpointService.GetEndpointById(endpoint); err != nil {
+	webServiceTest := &models.WebServiceTest{Id: webServiceTestId}
+	if err := handler.webServiceTestService.GetWebServiceTestById(webServiceTest); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
-	return ctx.JSON(http.StatusOK, endpoint)
+	return ctx.JSON(http.StatusOK, webServiceTest)
 }
 
-func (handler *EndpointHandlerImpl) DeleteEndpoint(c echo.Context) error {
+func (handler *WebServiceTestHandlerImpl) DeleteWebServiceTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	lang := ctx.Language()
-	endpointId, _ := ctx.ParamInt64(EndpointIdParam)
-	if rsvalid.IsZero(endpointId) {
-		return amerr.GetErrorsFromCode(amerr.ErrEndpointNotFound).GetErrFromLanguage(lang)
+	webServiceTestId, _ := ctx.ParamInt64(WebServiceTestIdParam)
+	if rsvalid.IsZero(webServiceTestId) {
+		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
 	}
 
-	endpoint := &models.Endpoint{Id: endpointId}
-	if err := handler.endpointService.DeleteEndpointById(endpoint); err != nil {
+	webServiceTest := &models.WebServiceTest{Id: webServiceTestId}
+	if err := handler.webServiceTestService.DeleteWebServiceTestById(webServiceTest); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
 	return ctx.JSON(http.StatusOK, nil)
 }
 
-func (handler *EndpointHandlerImpl) GetEndpointList(c echo.Context) error {
+func (handler *WebServiceTestHandlerImpl) GetWebServiceTestList(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
@@ -128,7 +128,7 @@ func (handler *EndpointHandlerImpl) GetEndpointList(c echo.Context) error {
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	list, aerr := handler.endpointService.GetEndpointList(models.EndpointListRequest{
+	list, aerr := handler.webServiceTestService.GetWebServiceTestList(models.WebServiceTestListRequest{
 		Page:         int(pageInt64),
 		NumItem:      int(numItemInt64),
 		WebServiceId: webServiceIdInt64,
@@ -140,15 +140,15 @@ func (handler *EndpointHandlerImpl) GetEndpointList(c echo.Context) error {
 	return ctx.JSON(http.StatusOK, list)
 }
 
-func NewEndpointHandler(webServiceService services.WebServiceService, endpointService services.EndpointService) (EndpointHandler, error) {
+func NewWebServiceTestHandler(webServiceService services.WebServiceService, webServiceTestService services.WebServiceTestService) (WebServiceTestHandler, error) {
 	if rsvalid.IsZero(
 		webServiceService,
-		endpointService,
+		webServiceTestService,
 	) {
-		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "EndpointHandler")
+		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "WebServiceTestHandler")
 	}
-	return &EndpointHandlerImpl{
-		webServiceService: webServiceService,
-		endpointService:   endpointService,
+	return &WebServiceTestHandlerImpl{
+		webServiceService:     webServiceService,
+		webServiceTestService: webServiceTestService,
 	}, nil
 }

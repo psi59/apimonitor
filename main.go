@@ -44,18 +44,18 @@ func main() {
 	e.HTTPErrorHandler = middlewares.ErrorHandleMiddleware
 
 	webserviceRepository := repositories.NewWebServiceRepository()
-	endpointRepository := repositories.NewEndpointRepository()
+	webServiceTestRepository := repositories.NewWebServiceTestRepository()
 
-	if err := rsdb.CreateTables(webserviceRepository, endpointRepository); err != nil {
+	if err := rsdb.CreateTables(webserviceRepository, webServiceTestRepository); err != nil {
 		logrus.Fatal(err)
 	}
 
-	webServiceService, err := services.NewWebServiceService(endpointRepository)
+	webServiceService, err := services.NewWebServiceService(webServiceTestRepository)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	endpointService, err := services.NewEndpointService(endpointRepository)
+	webServiceTestService, err := services.NewWebServiceTestService(webServiceTestRepository)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	endpointHandler, err := handlers.NewEndpointHandler(webServiceService, endpointService)
+	webServiceTestHandler, err := handlers.NewWebServiceTestHandler(webServiceService, webServiceTestService)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -84,21 +84,21 @@ func main() {
 				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
 			}
 
-			v1OneWebServiceEndpoints := v1OneWebService.Group("/endpoints")
+			v1OneWebServiceWebServiceTests := v1OneWebService.Group("/webServiceTests")
 			{
-				v1OneWebServiceEndpoints.POST("", endpointHandler.CreateEndpoint)
+				v1OneWebServiceWebServiceTests.POST("", webServiceTestHandler.CreateWebServiceTest)
 			}
 
 		}
 
-		v1Endpoint := v1.Group("/endpoints")
+		v1WebServiceTest := v1.Group("/tests")
 		{
-			v1Endpoint.GET("", endpointHandler.GetEndpointList)
+			v1WebServiceTest.GET("", webServiceTestHandler.GetWebServiceTestList)
 
-			v1OneEndpoint := v1Endpoint.Group(fmt.Sprintf("/:%s", handlers.EndpointIdParam))
+			v1OneWebServiceTest := v1WebServiceTest.Group(fmt.Sprintf("/:%s", handlers.WebServiceTestIdParam))
 			{
-				v1OneEndpoint.GET("", endpointHandler.GetEndpoint)
-				v1OneEndpoint.DELETE("", endpointHandler.DeleteEndpoint)
+				v1OneWebServiceTest.GET("", webServiceTestHandler.GetWebServiceTest)
+				v1OneWebServiceTest.DELETE("", webServiceTestHandler.DeleteWebServiceTest)
 			}
 		}
 	}
