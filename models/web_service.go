@@ -25,8 +25,7 @@ type WebService struct {
 
 func (webService *WebService) Validate() error {
 	if rsvalid.IsZero(
-		webService.LastModified, webService.Created,
-		webService.Desc, webService.Host,
+		webService.LastModified, webService.Created, webService.Host,
 	) {
 		return errors.Wrap(rserrors.ErrInvalidParameter, "webService")
 	}
