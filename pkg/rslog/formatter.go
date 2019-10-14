@@ -12,12 +12,13 @@ type Formatter struct{}
 
 func (f Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	colorLevel := getColorLevel(entry.Level.String())
-	logPrefix := fmt.Sprintf("[%s][%s]", colorLevel, color.HiWhiteString(entry.Time.Format("2006-01-02T15:04:05.999999-07:00")))
-	for k, v := range entry.Data {
-		logPrefix += color.BlueString(fmt.Sprintf("[%s:%v]", k, v))
+	logPrefix := fmt.Sprintf("%s\t%s\t", color.HiWhiteString(entry.Time.Format("2006-01-02 15:04:05.999")), colorLevel)
+	fn, ok := entry.Data["func"]
+	if ok {
+		logPrefix += color.HiBlueString(fmt.Sprintf("%v\t", fn))
 	}
 
-	return []byte(fmt.Sprintf("%s :: %s\n", logPrefix, entry.Message)), nil
+	return []byte(fmt.Sprintf("%s: %s\n", logPrefix, color.HiWhiteString(entry.Message))), nil
 }
 
 func getColorLevel(lvl string) string {
@@ -28,9 +29,9 @@ func getColorLevel(lvl string) string {
 	case "WARN", "WARNING":
 		return color.YellowString(upperLevel)
 	case "INFO":
-		return color.GreenString(upperLevel)
+		return color.HiGreenString(upperLevel)
 	case "DEBUG":
-		return color.CyanString(upperLevel)
+		return color.HiCyanString(upperLevel)
 	case "TRACE":
 		return color.MagentaString(upperLevel)
 	default:
