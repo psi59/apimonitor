@@ -30,6 +30,10 @@ var (
 	std = logrus.New()
 )
 
+func init() {
+	std.SetFormatter(&Formatter{})
+}
+
 func setLevel(level string) error {
 	var logLevel logrus.Level
 	switch level {
@@ -47,18 +51,6 @@ func setLevel(level string) error {
 		return rserrors.Error("invalid logger level")
 	}
 	std.SetLevel(logLevel)
-	return nil
-}
-
-func setFormat(format string) error {
-	switch format {
-	case FormatJSON:
-		std.SetFormatter(&logrus.JSONFormatter{})
-	case FormatText:
-		std.SetFormatter(&logrus.TextFormatter{})
-	default:
-		return rserrors.Error("invalid logger format")
-	}
 	return nil
 }
 
@@ -83,10 +75,6 @@ func setOutput(output, path string) error {
 
 func Init(config LogConfig) error {
 	if err := setLevel(config.GetLevel()); err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err := setFormat(config.GetFormat()); err != nil {
 		return errors.WithStack(err)
 	}
 

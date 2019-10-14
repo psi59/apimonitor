@@ -148,6 +148,11 @@ func (webServiceTestListItem WebServiceTestListItem) TableName() string {
 	return "endpoints"
 }
 
+func (webServiceTest WebServiceTest) Run() (WebServiceTestResult, error) {
+
+	panic("not implement")
+}
+
 type WebServiceTestListRequest struct {
 	Page         int
 	NumItem      int
