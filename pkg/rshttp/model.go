@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/realsangil/apimonitor/pkg/rsjson"
 	"github.com/realsangil/apimonitor/pkg/rslog"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
+)
+
+const (
+	DefaultTimeout = 5 * time.Second
 )
 
 type Header rsjson.MapJson
@@ -44,11 +49,22 @@ func (query Query) GetHttpQueryString() string {
 	return q.Encode()
 }
 
+type Timeout int64
+
+func (timeout Timeout) GetDuration() time.Duration {
+	if rsvalid.IsZero(timeout) {
+		return DefaultTimeout
+	}
+	return time.Duration(timeout) * time.Second
+}
+
 type Request struct {
-	RawUrl string
-	Header Header
-	Query  Query
-	Body   map[string]interface{}
+	RawUrl      string
+	Header      Header
+	Query       Query
+	ContentType ContentType
+	Body        rsjson.MapJson
+	Timeout     Timeout
 }
 
 func (request Request) GetUrl() string {
@@ -75,7 +91,7 @@ type Response interface {
 type HttpResponse struct {
 	StatusCode   int
 	ResponseTime int64
-	Body         map[string]interface{}
+	Body         interface{}
 }
 
 func (d HttpResponse) GetStatusCode() int {

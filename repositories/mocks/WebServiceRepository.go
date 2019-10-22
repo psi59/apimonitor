@@ -3,6 +3,7 @@
 package mocks
 
 import mock "github.com/stretchr/testify/mock"
+import models "github.com/realsangil/apimonitor/models"
 
 import rsdb "github.com/realsangil/apimonitor/pkg/rsdb"
 import rsmodel "github.com/realsangil/apimonitor/pkg/rsmodel"
@@ -66,6 +67,29 @@ func (_m *WebServiceRepository) FirstOrCreate(tx rsdb.Connection, src rsmodel.Va
 	}
 
 	return r0
+}
+
+// GetAllWebServicesWithTests provides a mock function with given fields: conn
+func (_m *WebServiceRepository) GetAllWebServicesWithTests(conn rsdb.Connection) ([]models.WebService, error) {
+	ret := _m.Called(conn)
+
+	var r0 []models.WebService
+	if rf, ok := ret.Get(0).(func(rsdb.Connection) []models.WebService); ok {
+		r0 = rf(conn)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.WebService)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(rsdb.Connection) error); ok {
+		r1 = rf(conn)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetById provides a mock function with given fields: tx, id

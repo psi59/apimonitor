@@ -1,15 +1,18 @@
 package models
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/rsjson"
+	"github.com/realsangil/apimonitor/pkg/rslog"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
@@ -22,24 +25,12 @@ type WebServiceTest struct {
 	ContentType  rshttp.ContentType  `json:"content_type"`
 	Desc         string              `json:"desc" gorm:"Type:TEXT"`
 	RequestData  rsjson.MapJson      `json:"request_data" gorm:"Type:JSON"`
-	Header       rsjson.MapJson      `json:"header" gorm:"Type:JSON"`
-	QueryParam   rsjson.MapJson      `json:"query_param" gorm:"Type:JSON"`
+	Header       rshttp.Header       `json:"header" gorm:"Type:JSON"`
+	QueryParam   rshttp.Query        `json:"query_param" gorm:"Type:JSON"`
+	Timeout      rshttp.Timeout      `json:"timeout"`
+	Assertion    AssertionV1         `json:"assertion" gorm:"Type:JSON"`
 	Created      time.Time           `json:"created"`
 	LastModified time.Time           `json:"last_modified"`
-}
-
-func NewWebServiceTest(webService *WebService, request WebServiceTestRequest) (*WebServiceTest, error) {
-	if rsvalid.IsZero(webService, request) {
-		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint")
-	}
-	webServiceTest := &WebServiceTest{
-		WebServiceId: webService.Id,
-		Created:      time.Now(),
-	}
-	if err := webServiceTest.UpdateFromRequest(request); err != nil {
-		return nil, errors.WithStack(err)
-	}
-	return webServiceTest, nil
 }
 
 func (webServiceTest *WebServiceTest) UpdateFromRequest(request WebServiceTestRequest) error {
@@ -49,7 +40,7 @@ func (webServiceTest *WebServiceTest) UpdateFromRequest(request WebServiceTestRe
 	webServiceTest.Desc = request.Desc
 	webServiceTest.RequestData = request.RequestData
 	webServiceTest.Header = request.Header
-	webServiceTest.QueryParam = request.Header
+	webServiceTest.QueryParam = request.QueryParam
 	webServiceTest.LastModified = time.Now()
 	return webServiceTest.Validate()
 }
@@ -78,14 +69,66 @@ func (webServiceTest *WebServiceTest) Validate() error {
 	return nil
 }
 
+func (webServiceTest WebServiceTest) Execute(webService *WebService) (rshttp.Response, error) {
+	request, err := webServiceTest.ToHttpRequest(webService)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	res, err := rshttp.Do(request)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	rslog.Debugf("res='%+v'", res)
+
+	return res, nil
+}
+
+func (webServiceTest WebServiceTest) ToHttpRequest(webService *WebService) (*rshttp.Request, error) {
+	if rsvalid.IsZero(webService) {
+		return nil, errors.WithStack(rserrors.ErrInvalidParameter)
+	}
+
+	rawUrl := url.URL{
+		Scheme: webService.HttpSchema,
+		Host:   webService.Host,
+		Path:   webServiceTest.Path.String(),
+	}
+	rslog.Debugf("rawUrl='%s'", rawUrl.String())
+
+	request := rshttp.Request{
+		RawUrl:  rawUrl.String(),
+		Header:  webServiceTest.Header,
+		Query:   webServiceTest.QueryParam,
+		Body:    webServiceTest.RequestData,
+		Timeout: webServiceTest.Timeout,
+	}
+
+	return &request, nil
+}
+
+func NewWebServiceTest(webService *WebService, request WebServiceTestRequest) (*WebServiceTest, error) {
+	if rsvalid.IsZero(webService, request) {
+		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint")
+	}
+	webServiceTest := &WebServiceTest{
+		WebServiceId: webService.Id,
+		Created:      time.Now(),
+	}
+	if err := webServiceTest.UpdateFromRequest(request); err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return webServiceTest, nil
+}
+
 type WebServiceTestRequest struct {
 	Path        rshttp.EndpointPath `json:"path"`
 	HttpMethod  rshttp.Method       `json:"http_method"`
 	ContentType rshttp.ContentType  `json:"content_type"`
 	Desc        string              `json:"desc"`
 	RequestData rsjson.MapJson      `json:"request_data" gorm:"Type:JSON"`
-	Header      rsjson.MapJson      `json:"header" gorm:"Type:JSON"`
-	QueryParam  rsjson.MapJson      `json:"query_param" gorm:"Type:JSON"`
+	Header      rshttp.Header       `json:"header" gorm:"Type:JSON"`
+	QueryParam  rshttp.Query        `json:"query_param" gorm:"Type:JSON"`
 }
 
 func (request WebServiceTestRequest) Validate() error {
@@ -148,13 +191,24 @@ func (webServiceTestListItem WebServiceTestListItem) TableName() string {
 	return "endpoints"
 }
 
-func (webServiceTest WebServiceTest) Run() (WebServiceTestResult, error) {
-
-	panic("not implement")
-}
-
 type WebServiceTestListRequest struct {
 	Page         int
 	NumItem      int
 	WebServiceId int64
+}
+
+type AssertionV1 struct {
+	StatusCode int
+}
+
+func (assertion *AssertionV1) Scan(src interface{}) error {
+	return rsdb.ScanJson(assertion, src)
+}
+
+func (assertion AssertionV1) Value() (driver.Value, error) {
+	return rsdb.JsonValue(assertion)
+}
+
+func (assertion AssertionV1) Assert(res rshttp.Response) bool {
+	return rsvalid.IsZero(res) && assertion.StatusCode == res.GetStatusCode()
 }

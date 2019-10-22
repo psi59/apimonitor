@@ -9,10 +9,19 @@ import (
 
 type WebServiceRepository interface {
 	rsdb.Repository
+	GetAllWebServicesWithTests(conn rsdb.Connection) ([]models.WebService, error)
 }
 
 type WebServiceRepositoryImpl struct {
 	rsdb.Repository
+}
+
+func (repository *WebServiceRepositoryImpl) GetAllWebServicesWithTests(conn rsdb.Connection) ([]models.WebService, error) {
+	items := make([]models.WebService, 0)
+	if err := conn.Conn().Preload("Tests").Find(&items).Error; err != nil {
+		return nil, rsdb.HandleSQLError(err)
+	}
+	return items, nil
 }
 
 func (repository WebServiceRepositoryImpl) CreateTable(transaction rsdb.Connection) error {

@@ -2,6 +2,8 @@ package rshttp
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -107,4 +109,27 @@ func (contentType ContentType) Validate() error {
 		return nil
 	}
 	return errors.Wrap(rserrors.ErrInvalidParameter, "ContentType")
+}
+
+func (contentType ContentType) GetBodyFromResponse(res *http.Response) (interface{}, error) {
+	rawBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var body interface{}
+	switch contentType {
+	case MIMEApplicationJSON:
+		body = make(map[string]interface{})
+	case MIMETextHTML:
+		body = ""
+	default:
+		body = make(map[string]interface{})
+	}
+
+	if err := jsoniter.Unmarshal(rawBody, &body); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return body, nil
 }

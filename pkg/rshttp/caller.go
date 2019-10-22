@@ -1,55 +1,73 @@
 package rshttp
 
 import (
-	"io/ioutil"
+	"bytes"
+	"context"
+	"io"
 	"net/http"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+
+	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
-func Get(request Request) (Response, error) {
-	req, err := http.NewRequest(http.MethodGet, request.GetUrl(), nil)
+func Do(req *Request) (Response, error) {
+	if rsvalid.IsZero(req) {
+		return nil, errors.WithStack(rserrors.ErrInvalidParameter)
+	}
+	rawBody, _ := jsoniter.Marshal(req.Body)
+	var requestBody io.Reader
+	if !rsvalid.IsZero(rawBody) {
+		requestBody = bytes.NewReader(rawBody)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), req.Timeout.GetDuration())
+
+	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, req.GetUrl(), requestBody)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	req.Header = request.Header.GetHttpHeader()
+	httpRequest.Header = req.Header.GetHttpHeader()
 
-	return executeRequest(req)
-}
+	errChan := make(chan error, 1)
 
-func Post(request Request) (Response, error) {
-	panic("not implement")
-}
+	httpResponse := new(http.Response)
+	getResponse := func(httpResponse *http.Response, endDuration time.Duration, err error) (Response, error) {
+		if err != nil {
+			return nil, err
+		}
 
-func executeRequest(req *http.Request) (Response, error) {
+		// TODO: response 바디 가져오기 추가
+		// result, err := responseContentType.GetBodyFromResponse(res)
+		// if err != nil {
+		// 	return nil, errors.WithStack(err)
+		// }
+
+		return &HttpResponse{
+			StatusCode:   httpResponse.StatusCode,
+			ResponseTime: endDuration.Milliseconds(),
+			Body:         nil,
+		}, nil
+	}
 	start := time.Now()
-	res, err := http.DefaultClient.Do(req)
+	go func() {
+		defer close(errChan)
+		res, err := http.DefaultClient.Do(httpRequest)
+		if err != nil {
+			errChan <- err
+		}
+		httpResponse = res
+		errChan <- nil
+	}()
 	end := time.Since(start)
 
-	result, err := getResponse(res, end.Milliseconds())
-	if err != nil {
-		return nil, errors.WithStack(err)
+	select {
+	case <-ctx.Done():
+		cancel()
+		return nil, rserrors.Error("timeout")
+	case err := <-errChan:
+		return getResponse(httpResponse, end, err)
 	}
-
-	return result, nil
-}
-
-func getResponse(res *http.Response, responseTime int64) (Response, error) {
-	rawBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	body := make(map[string]interface{})
-	if err := jsoniter.Unmarshal(rawBody, &body); err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return &HttpResponse{
-		StatusCode:   res.StatusCode,
-		ResponseTime: responseTime,
-		Body:         body,
-	}, nil
 }

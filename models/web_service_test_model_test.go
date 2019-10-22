@@ -20,8 +20,8 @@ func TestWebServiceTest_Validate(t *testing.T) {
 		HttpMethod             rshttp.Method
 		ContentType            rshttp.ContentType
 		RequestData            rsjson.MapJson
-		Header                 rsjson.MapJson
-		QueryParam             rsjson.MapJson
+		Header                 rshttp.Header
+		QueryParam             rshttp.Query
 		Created                time.Time
 		LastModified           time.Time
 	}
@@ -121,7 +121,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 		"key2": 2,
 	}
 
-	mockHeader := rsjson.MapJson{
+	mockHeader := rshttp.Header{
 		"Authorization":   "Bearer access_token",
 		"accept-language": "ko",
 	}
@@ -309,8 +309,8 @@ func TestWebServiceTestRequest_Validate(t *testing.T) {
 		HttpMethod  rshttp.Method
 		ContentType rshttp.ContentType
 		RequestData rsjson.MapJson
-		Header      rsjson.MapJson
-		QueryParam  rsjson.MapJson
+		Header      rshttp.Header
+		QueryParam  rshttp.Query
 	}
 	tests := []struct {
 		name    string
