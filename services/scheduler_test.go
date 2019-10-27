@@ -132,11 +132,11 @@ func Test_webServiceScheduleManager_Run(t *testing.T) {
 		}, nil
 	})
 
-	resultChan := make(chan models.WebServiceTestResult, 1)
+	resultChan := make(chan *models.WebServiceTestResult, 1)
 
 	type fields struct {
 		webServiceSchedulers map[interface{}]WebServiceScheduler
-		resultChan           chan models.WebServiceTestResult
+		resultChan           chan *models.WebServiceTestResult
 	}
 	tests := []struct {
 		name    string
