@@ -210,5 +210,5 @@ func (assertion AssertionV1) Value() (driver.Value, error) {
 }
 
 func (assertion AssertionV1) Assert(res rshttp.Response) bool {
-	return rsvalid.IsZero(res) && assertion.StatusCode == res.GetStatusCode()
+	return !rsvalid.IsZero(res) && assertion.StatusCode == res.GetStatusCode()
 }

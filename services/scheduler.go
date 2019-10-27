@@ -1,12 +1,15 @@
 package services
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
+	"github.com/realsangil/apimonitor/pkg/rsstr"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
@@ -38,15 +41,37 @@ type webServiceScheduleManager struct {
 	webServiceSchedulers           map[interface{}]WebServiceScheduler
 	webServiceRepository           repositories.WebServiceRepository
 	webServiceTestResultRepository repositories.WebServiceTestResultRepository
+	resultChan                     chan *models.WebServiceTestResult
+	closeChan                      chan bool
 }
 
 func (manager *webServiceScheduleManager) Run() error {
 	rslog.Debug("Running WebServiceManager...")
+	errChan := make(chan error, 100)
 	for _, s := range manager.webServiceSchedulers {
-		if err := s.Run(); err != nil {
-			return errors.WithStack(err)
+		go func(s WebServiceScheduler, errChan chan<- error) {
+			if err := s.Run(); err != nil {
+				errChan <- err
+			}
+		}(s, errChan)
+	}
+	for {
+		select {
+		case err := <-errChan:
+			rslog.Errorf("error='%v'", err)
+		// 	TODO: 에러 프린팅
+		case result := <-manager.resultChan:
+			rslog.Debugf("result='%+v'", result)
+			if err := manager.webServiceTestResultRepository.Create(rsdb.GetConnection(), result); err != nil {
+				errChan <- err
+			}
+		case <-manager.closeChan:
+			rslog.Debug("Closed webServiceScheduleManager")
+			_ = manager.Close()
+			return nil
 		}
 	}
+
 	return nil
 }
 
@@ -72,7 +97,7 @@ func (manager *webServiceScheduleManager) refreshWebServices() error {
 
 	rslog.Debugf("webServices='%+v'", webServices)
 	for _, webService := range webServices {
-		webServiceScheduler, err := NewWebServiceScheduler(&webService)
+		webServiceScheduler, err := NewWebServiceScheduler(&webService, manager.resultChan)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -86,10 +111,10 @@ func (manager *webServiceScheduleManager) refreshWebServices() error {
 func (manager *webServiceScheduleManager) Close() error {
 	rslog.Debug("Closing WebServiceManager...")
 	for _, s := range manager.webServiceSchedulers {
-		if err := s.Close(); err != nil {
-			return errors.WithStack(err)
-		}
+		_ = s.Close()
 	}
+	manager.closeChan <- true
+	close(manager.closeChan)
 	return nil
 }
 
@@ -101,12 +126,14 @@ func NewWebServiceScheduleManager(webServiceRepository repositories.WebServiceRe
 		webServiceSchedulers:           make(map[interface{}]WebServiceScheduler),
 		webServiceRepository:           webServiceRepository,
 		webServiceTestResultRepository: webServiceTestRepository,
+		resultChan:                     make(chan *models.WebServiceTestResult, 1000),
 	}, nil
 }
 
 type webServiceScheduler struct {
 	webService *models.WebService
 	closeChan  chan bool
+	resultChan chan<- *models.WebServiceTestResult
 }
 
 func (schedule *webServiceScheduler) Run() error {
@@ -121,9 +148,13 @@ func (schedule *webServiceScheduler) Run() error {
 					return err
 				}
 				rslog.Debugf("executed test:: id='%v'", test.Id)
-
-				if !test.Assertion.Assert(res) {
-
+				schedule.resultChan <- &models.WebServiceTestResult{
+					Id:               rsstr.NewUUID(),
+					WebServiceTestId: schedule.webService.Id,
+					IsSuccess:        test.Assertion.Assert(res),
+					StatusCode:       res.GetStatusCode(),
+					ResponseTime:     res.GetResponseTime(),
+					TestedAt:         time.Now(),
 				}
 			}
 		case <-schedule.closeChan:
@@ -139,12 +170,13 @@ func (schedule *webServiceScheduler) Close() error {
 	return nil
 }
 
-func NewWebServiceScheduler(webService *models.WebService) (WebServiceScheduler, error) {
+func NewWebServiceScheduler(webService *models.WebService, resultChan chan<- *models.WebServiceTestResult) (WebServiceScheduler, error) {
 	if rsvalid.IsZero(webService) {
 		return nil, rserrors.ErrInvalidParameter
 	}
 	return &webServiceScheduler{
 		webService: webService,
 		closeChan:  make(chan bool, 1),
+		resultChan: resultChan,
 	}, nil
 }

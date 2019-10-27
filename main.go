@@ -43,14 +43,14 @@ func main() {
 	)
 	e.HTTPErrorHandler = middlewares.ErrorHandleMiddleware
 
-	webserviceRepository := repositories.NewWebServiceRepository()
+	webServiceRepository := repositories.NewWebServiceRepository()
 	webServiceTestRepository := repositories.NewWebServiceTestRepository()
 
-	if err := rsdb.CreateTables(webserviceRepository, webServiceTestRepository); err != nil {
+	if err := rsdb.CreateTables(webServiceRepository, webServiceTestRepository); err != nil {
 		logrus.Fatal(err)
 	}
 
-	webServiceService, err := services.NewWebServiceService(webServiceTestRepository)
+	webServiceService, err := services.NewWebServiceService(webServiceRepository)
 	if err != nil {
 		logrus.Fatal(err)
 	}

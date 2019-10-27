@@ -19,7 +19,7 @@ func (repository *WebServiceTestResultRepositoryImp) CreateTable(conn rsdb.Conne
 		return rsdb.HandleSQLError(err)
 	}
 	if err := conn.Conn().
-		AddForeignKey("endpoint_id", "endpoints", "CASCADE", "CASCADE").Error; err != nil {
+		AddForeignKey("web_service_test_id", "web_service_tests(id)", "CASCADE", "CASCADE").Error; err != nil {
 		return rsdb.HandleSQLError(err)
 	}
 	return nil
