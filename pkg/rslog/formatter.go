@@ -15,10 +15,10 @@ func (f Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	logPrefix := fmt.Sprintf("%s\t%s\t", color.HiWhiteString(entry.Time.Format("2006-01-02 15:04:05.999")), colorLevel)
 	fn, ok := entry.Data["func"]
 	if ok {
-		logPrefix += color.HiBlueString(fmt.Sprintf("%v\t", fn))
+		logPrefix += color.HiBlueString(fmt.Sprintf("%v", fn))
 	}
 
-	return []byte(fmt.Sprintf("%s: %s\n", logPrefix, color.HiWhiteString(entry.Message))), nil
+	return []byte(fmt.Sprintf("%s:\t %s\n", logPrefix, color.HiWhiteString(entry.Message))), nil
 }
 
 func getColorLevel(lvl string) string {
