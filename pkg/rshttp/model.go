@@ -1,6 +1,7 @@
 package rshttp
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,7 +16,15 @@ const (
 	DefaultTimeout = 5 * time.Second
 )
 
-type Header rsjson.MapJson
+type Header map[string]interface{}
+
+func (header *Header) Scan(src interface{}) error {
+	return rsjson.ScanFromDB(src, header)
+}
+
+func (header Header) Value() (driver.Value, error) {
+	return rsjson.ValueToDB(header)
+}
 
 func (header Header) GetHttpHeader() http.Header {
 	if rsvalid.IsZero(header) {
@@ -25,10 +34,19 @@ func (header Header) GetHttpHeader() http.Header {
 	for k, v := range header {
 		httpHeader.Add(k, convertInterfaceToString(v))
 	}
+
 	return httpHeader
 }
 
-type Query rsjson.MapJson
+type Query map[string]interface{}
+
+func (query *Query) Scan(src interface{}) error {
+	return rsjson.ScanFromDB(src, query)
+}
+
+func (query Query) Value() (driver.Value, error) {
+	return rsjson.ValueToDB(query)
+}
 
 func (query Query) GetHttpQuery() url.Values {
 	if rsvalid.IsZero(query) {

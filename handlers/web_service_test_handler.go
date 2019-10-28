@@ -38,7 +38,8 @@ func (handler *WebServiceTestHandlerImpl) CreateWebServiceTest(c echo.Context) e
 	}
 
 	lang := ctx.Language()
-	webServiceId, _ := ctx.ParamInt64(WebServiceIdParam)
+
+	webServiceId, _ := ctx.QueryParamInt64(WebServiceIdParam, 0)
 	if rsvalid.IsZero(webServiceId) {
 		return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang)
 	}

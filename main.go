@@ -98,16 +98,11 @@ func main() {
 				v1OneWebService.DELETE("", webServiceHandler.DeleteWebServiceById)
 				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
 			}
-
-			v1OneWebServiceWebServiceTests := v1OneWebService.Group("/webServiceTests")
-			{
-				v1OneWebServiceWebServiceTests.POST("", webServiceTestHandler.CreateWebServiceTest)
-			}
-
 		}
 
 		v1WebServiceTest := v1.Group("/tests")
 		{
+			v1WebServiceTest.POST("", webServiceTestHandler.CreateWebServiceTest)
 			v1WebServiceTest.GET("", webServiceTestHandler.GetWebServiceTestList)
 
 			v1OneWebServiceTest := v1WebServiceTest.Group(fmt.Sprintf("/:%s", handlers.WebServiceTestIdParam))

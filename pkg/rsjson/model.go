@@ -3,6 +3,7 @@ package rsjson
 import (
 	"database/sql/driver"
 	"errors"
+	"reflect"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -23,4 +24,26 @@ func (mapJson *MapJson) Scan(src interface{}) error {
 		return errors.New("Invalid Scan Source")
 	}
 	return jsoniter.Unmarshal(s, mapJson)
+}
+
+func ValueToDB(src interface{}) (driver.Value, error) {
+	return jsoniter.Marshal(src)
+}
+
+func ScanFromDB(src, dst interface{}) error {
+	dstType := reflect.TypeOf(dst)
+	if dstType.Kind() != reflect.Ptr {
+		return errors.New("dst is not ptr")
+	}
+
+	if src == nil {
+		dst = nil
+		return nil
+	}
+
+	s, ok := src.([]byte)
+	if !ok {
+		return errors.New("invalid scan source")
+	}
+	return jsoniter.Unmarshal(s, dst)
 }

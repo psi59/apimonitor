@@ -32,7 +32,7 @@ func (repository *WebServiceTestResultRepositoryImp) CreateTable(conn rsdb.Conne
 
 func (repository *WebServiceTestResultRepositoryImp) GetResultList(
 	conn rsdb.Connection, webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodel.PaginatedList, error) {
-	sql := conn.Conn().Table("web_service_test_results AS wstr")
+	sql := conn.Conn().Table("web_service_test_results AS wstr").Select("*")
 	sql = sql.Joins("INNER JOIN web_service_tests AS wst ON wstr.web_service_test_id=wst.id AND wst.id=?", webServiceTest.Id)
 
 	query := rsdb.NewEmptyQuery()
