@@ -118,14 +118,14 @@ func (manager *webServiceScheduleManager) Close() error {
 	return nil
 }
 
-func NewWebServiceScheduleManager(webServiceRepository repositories.WebServiceRepository, webServiceTestRepository repositories.WebServiceTestRepository) (WebServiceScheduleManager, error) {
-	if rsvalid.IsZero(webServiceRepository, webServiceTestRepository) {
+func NewWebServiceScheduleManager(webServiceRepository repositories.WebServiceRepository, webServiceTestResultRepository repositories.WebServiceTestResultRepository) (WebServiceScheduleManager, error) {
+	if rsvalid.IsZero(webServiceRepository, webServiceTestResultRepository) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "WebServiceScheduler")
 	}
 	return &webServiceScheduleManager{
 		webServiceSchedulers:           make(map[interface{}]WebServiceScheduler),
 		webServiceRepository:           webServiceRepository,
-		webServiceTestResultRepository: webServiceTestRepository,
+		webServiceTestResultRepository: webServiceTestResultRepository,
 		resultChan:                     make(chan *models.WebServiceTestResult, 1000),
 	}, nil
 }

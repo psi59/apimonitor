@@ -188,7 +188,7 @@ func (webServiceTestListItem WebServiceTestListItem) MarshalJSON() ([]byte, erro
 }
 
 func (webServiceTestListItem WebServiceTestListItem) TableName() string {
-	return "endpoints"
+	return "web_service_tests"
 }
 
 type WebServiceTestListRequest struct {

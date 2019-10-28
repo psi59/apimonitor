@@ -45,29 +45,44 @@ func main() {
 
 	webServiceRepository := repositories.NewWebServiceRepository()
 	webServiceTestRepository := repositories.NewWebServiceTestRepository()
+	webServiceTestResultRepository := repositories.NewWebServiceTestResultRepository()
 
-	if err := rsdb.CreateTables(webServiceRepository, webServiceTestRepository); err != nil {
-		logrus.Fatal(err)
+	if err := rsdb.CreateTables(
+		webServiceRepository,
+		webServiceTestRepository,
+		webServiceTestResultRepository,
+	); err != nil {
+		rslog.Fatal(err)
 	}
 
 	webServiceService, err := services.NewWebServiceService(webServiceRepository)
 	if err != nil {
-		logrus.Fatal(err)
+		rslog.Fatal(err)
 	}
 
 	webServiceTestService, err := services.NewWebServiceTestService(webServiceTestRepository)
 	if err != nil {
-		logrus.Fatal(err)
+		rslog.Fatal(err)
+	}
+
+	webServiceTestResultService, err := services.NewWebServiceTestResultService(webServiceTestResultRepository)
+	if err != nil {
+		rslog.Fatal(err)
 	}
 
 	webServiceHandler, err := handlers.NewWebServiceHandler(webServiceService)
 	if err != nil {
-		logrus.Fatal(err)
+		rslog.Fatal(err)
 	}
 
 	webServiceTestHandler, err := handlers.NewWebServiceTestHandler(webServiceService, webServiceTestService)
 	if err != nil {
-		logrus.Fatal(err)
+		rslog.Fatal(err)
+	}
+
+	webServiceTestResultHandler, err := handlers.NewWebServiceTestResultHandler(webServiceTestResultService)
+	if err != nil {
+		rslog.Fatal(err)
 	}
 
 	v1 := e.Group("/v1")
@@ -99,6 +114,7 @@ func main() {
 			{
 				v1OneWebServiceTest.GET("", webServiceTestHandler.GetWebServiceTest)
 				v1OneWebServiceTest.DELETE("", webServiceTestHandler.DeleteWebServiceTest)
+				v1OneWebServiceTest.GET("/results", webServiceTestResultHandler.GetList)
 			}
 		}
 	}
