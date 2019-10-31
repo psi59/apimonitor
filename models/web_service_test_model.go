@@ -13,11 +13,12 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/rsjson"
 	"github.com/realsangil/apimonitor/pkg/rslog"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
 type WebServiceTest struct {
-	DefaultValidateChecker
+	rsmodels.DefaultValidateChecker
 	Id           int64               `json:"id"`
 	WebServiceId int64               `json:"-"`
 	Path         rshttp.EndpointPath `json:"path"`

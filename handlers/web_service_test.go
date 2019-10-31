@@ -10,7 +10,7 @@ import (
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/amerr"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 	"github.com/realsangil/apimonitor/services"
 	"github.com/realsangil/apimonitor/services/mocks"
@@ -420,7 +420,7 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 	testutils.MonkeyAll()
 
-	paginatedList := &rsmodel.PaginatedList{
+	paginatedList := &rsmodels.PaginatedList{
 		CurrentPage: 1,
 		NumItem:     20,
 		TotalCount:  1,

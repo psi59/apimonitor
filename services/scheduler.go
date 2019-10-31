@@ -9,6 +9,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsstr"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
@@ -113,8 +114,7 @@ func (manager *webServiceScheduleManager) Close() error {
 	for _, s := range manager.webServiceSchedulers {
 		_ = s.Close()
 	}
-	manager.closeChan <- true
-	close(manager.closeChan)
+	// manager.closeChan <- true
 	return nil
 }
 
@@ -149,12 +149,13 @@ func (schedule *webServiceScheduler) Run() error {
 				}
 				rslog.Debugf("executed test:: id='%v'", test.Id)
 				schedule.resultChan <- &models.WebServiceTestResult{
-					Id:               rsstr.NewUUID(),
-					WebServiceTestId: schedule.webService.Id,
-					IsSuccess:        test.Assertion.Assert(res),
-					StatusCode:       res.GetStatusCode(),
-					ResponseTime:     res.GetResponseTime(),
-					TestedAt:         time.Now(),
+					DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
+					Id:                     rsstr.NewUUID(),
+					WebServiceTestId:       test.Id,
+					IsSuccess:              test.Assertion.Assert(res),
+					StatusCode:             res.GetStatusCode(),
+					ResponseTime:           res.GetResponseTime(),
+					TestedAt:               time.Now(),
 				}
 			}
 		case <-schedule.closeChan:

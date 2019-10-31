@@ -6,7 +6,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
@@ -16,7 +16,7 @@ type WebServiceService interface {
 	GetWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage
 	DeleteWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage
 	UpdateWebServiceById(webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage
-	GetWebServiceList(request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
+	GetWebServiceList(request models.WebServiceListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type WebServiceServiceImpl struct {
@@ -112,7 +112,7 @@ func (service *WebServiceServiceImpl) UpdateWebServiceById(webService *models.We
 	return nil
 }
 
-func (service *WebServiceServiceImpl) GetWebServiceList(request models.WebServiceListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
+func (service *WebServiceServiceImpl) GetWebServiceList(request models.WebServiceListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage) {
 	if rsvalid.IsZero(request) {
 		return nil, amerr.GetErrorsFromCode(amerr.ErrInternalServer)
 	}
@@ -134,7 +134,7 @@ func (service *WebServiceServiceImpl) GetWebServiceList(request models.WebServic
 		return nil, amerr.GetErrInternalServer()
 	}
 
-	return &rsmodel.PaginatedList{
+	return &rsmodels.PaginatedList{
 		TotalCount:  totalCount,
 		CurrentPage: request.Page,
 		NumItem:     request.NumItem,

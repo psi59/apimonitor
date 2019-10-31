@@ -9,7 +9,7 @@ import (
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
 
@@ -30,7 +30,7 @@ func TestWebServiceTestResultRepositoryImp_GetResultList(t *testing.T) {
 		name     string
 		args     args
 		mockFunc rsdb.MockFunc
-		want     *rsmodel.PaginatedList
+		want     *rsmodels.PaginatedList
 		wantErr  error
 	}{
 		{
@@ -52,7 +52,7 @@ func TestWebServiceTestResultRepositoryImp_GetResultList(t *testing.T) {
 					AddRow("web_service_test_result_0", 1, 1, 200, 1, time.Now())
 				mock.ExpectQuery("SELECT").WithArgs(1).WillReturnRows(rows)
 			},
-			want: &rsmodel.PaginatedList{
+			want: &rsmodels.PaginatedList{
 				CurrentPage: 1,
 				NumItem:     1,
 				TotalCount:  1,

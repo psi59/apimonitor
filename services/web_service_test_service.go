@@ -7,7 +7,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
@@ -16,7 +16,7 @@ type WebServiceTestService interface {
 	CreateWebServiceTest(webService *models.WebService, request models.WebServiceTestRequest) (*models.WebServiceTest, *amerr.ErrorWithLanguage)
 	GetWebServiceTestById(endpoint *models.WebServiceTest) *amerr.ErrorWithLanguage
 	DeleteWebServiceTestById(endpoint *models.WebServiceTest) *amerr.ErrorWithLanguage
-	GetWebServiceTestList(request models.WebServiceTestListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
+	GetWebServiceTestList(request models.WebServiceTestListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type WebServiceTestServiceImpl struct {
@@ -93,7 +93,7 @@ func (service *WebServiceTestServiceImpl) DeleteWebServiceTestById(webServiceTes
 	return nil
 }
 
-func (service *WebServiceTestServiceImpl) GetWebServiceTestList(request models.WebServiceTestListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
+func (service *WebServiceTestServiceImpl) GetWebServiceTestList(request models.WebServiceTestListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage) {
 	filter := rsdb.ListFilter{
 		Page:    request.Page,
 		NumItem: request.NumItem,
@@ -114,7 +114,7 @@ func (service *WebServiceTestServiceImpl) GetWebServiceTestList(request models.W
 		return nil, amerr.GetErrInternalServer()
 	}
 
-	return &rsmodel.PaginatedList{
+	return &rsmodels.PaginatedList{
 		CurrentPage: request.Page,
 		NumItem:     request.NumItem,
 		TotalCount:  totalCount,

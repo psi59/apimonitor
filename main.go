@@ -70,6 +70,16 @@ func main() {
 		rslog.Fatal(err)
 	}
 
+	webServiceSchedulerManager, err := services.NewWebServiceScheduleManager(webServiceRepository, webServiceTestResultRepository)
+	if err != nil {
+		rslog.Fatal(err)
+	}
+	go func() {
+		if err := webServiceSchedulerManager.Refresh(); err != nil {
+			rslog.Fatal(err)
+		}
+	}()
+
 	webServiceHandler, err := handlers.NewWebServiceHandler(webServiceService)
 	if err != nil {
 		rslog.Fatal(err)

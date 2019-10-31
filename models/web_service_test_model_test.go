@@ -8,12 +8,13 @@ import (
 
 	"github.com/realsangil/apimonitor/pkg/rshttp"
 	"github.com/realsangil/apimonitor/pkg/rsjson"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
 
 func TestWebServiceTest_Validate(t *testing.T) {
 	type fields struct {
-		DefaultValidateChecker DefaultValidateChecker
+		DefaultValidateChecker rsmodels.DefaultValidateChecker
 		Id                     int64
 		WebServiceId           int64
 		Path                   rshttp.EndpointPath
@@ -248,7 +249,7 @@ func TestNewWebServiceTest(t *testing.T) {
 				request:    request,
 			},
 			want: &WebServiceTest{
-				DefaultValidateChecker: ValidatedDefaultValidateChecker,
+				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 				WebServiceId:           1,
 				Path:                   request.Path,
 				HttpMethod:             request.HttpMethod,

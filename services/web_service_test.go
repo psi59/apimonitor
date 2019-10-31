@@ -11,7 +11,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	mocks2 "github.com/realsangil/apimonitor/pkg/rsdb/mocks"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/testutils"
 	"github.com/realsangil/apimonitor/repositories"
 	"github.com/realsangil/apimonitor/repositories/mocks"
@@ -39,7 +39,7 @@ func TestWebServiceServiceImpl_CreateWebService(t *testing.T) {
 	}
 
 	validatedWebServiceWithoutId := &models.WebService{
-		DefaultValidateChecker: models.ValidatedDefaultValidateChecker,
+		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Host:                   "realsangil.github.io",
 		HttpSchema:             "https",
 		Desc:                   "sangil's dev blog",
@@ -49,7 +49,7 @@ func TestWebServiceServiceImpl_CreateWebService(t *testing.T) {
 	}
 
 	validatedWebService := &models.WebService{
-		DefaultValidateChecker: models.ValidatedDefaultValidateChecker,
+		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Id:                     1,
 		Host:                   "realsangil.github.io",
 		HttpSchema:             "https",
@@ -222,7 +222,7 @@ func TestWebServiceServiceImpl_GetWebServiceById(t *testing.T) {
 
 	webServiceWithId := &models.WebService{Id: 1}
 	webService := models.WebService{
-		DefaultValidateChecker: models.ValidatedDefaultValidateChecker,
+		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Id:                     1,
 		Host:                   "realsangil.github.io",
 		HttpSchema:             "https",
@@ -577,7 +577,7 @@ func TestWebServiceServiceImpl_GetWebServiceList(t *testing.T) {
 		name     string
 		args     args
 		mockFunc webServiceMockFunc
-		want     *rsmodel.PaginatedList
+		want     *rsmodels.PaginatedList
 		wantErr  *amerr.ErrorWithLanguage
 	}{
 		{
@@ -605,7 +605,7 @@ func TestWebServiceServiceImpl_GetWebServiceList(t *testing.T) {
 					*arg = paginatedList
 				}).Return(1, nil)
 			},
-			want: &rsmodel.PaginatedList{
+			want: &rsmodels.PaginatedList{
 				CurrentPage: 1,
 				TotalCount:  1,
 				NumItem:     20,

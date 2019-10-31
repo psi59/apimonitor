@@ -3,12 +3,12 @@ package repositories
 import (
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 )
 
 type WebServiceTestResultRepository interface {
 	rsdb.Repository
-	GetResultList(conn rsdb.Connection, webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodel.PaginatedList, error)
+	GetResultList(conn rsdb.Connection, webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodels.PaginatedList, error)
 }
 
 type WebServiceTestResultRepositoryImp struct {
@@ -31,7 +31,7 @@ func (repository *WebServiceTestResultRepositoryImp) CreateTable(conn rsdb.Conne
 }
 
 func (repository *WebServiceTestResultRepositoryImp) GetResultList(
-	conn rsdb.Connection, webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodel.PaginatedList, error) {
+	conn rsdb.Connection, webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodels.PaginatedList, error) {
 	sql := conn.Conn().Table("web_service_test_results AS wstr").Select("*")
 	sql = sql.Joins("INNER JOIN web_service_tests AS wst ON wstr.web_service_test_id=wst.id AND wst.id=?", webServiceTest.Id)
 
@@ -68,7 +68,7 @@ func (repository *WebServiceTestResultRepositoryImp) GetResultList(
 		return nil, rsdb.HandleSQLError(err)
 	}
 
-	return &rsmodel.PaginatedList{
+	return &rsmodels.PaginatedList{
 		CurrentPage: request.Page,
 		NumItem:     request.NumItem,
 		TotalCount:  totalCount,

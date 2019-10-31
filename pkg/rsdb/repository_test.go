@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 )
 
 type mockFunc func(m sqlmock.Sqlmock)
@@ -127,7 +127,7 @@ func TestHandleSQLError(t *testing.T) {
 func TestDefaultRepository_Create(t *testing.T) {
 	type args struct {
 		expectQuery func(mock sqlmock.Sqlmock)
-		mockData    rsmodel.ValidatedObject
+		mockData    rsmodels.ValidatedObject
 	}
 	cases := []struct {
 		name    string
@@ -192,13 +192,13 @@ func TestDefaultRepository_Create(t *testing.T) {
 
 func TestDefaultRepository_GetById(t *testing.T) {
 	type args struct {
-		id          rsmodel.ValidatedObject
+		id          rsmodels.ValidatedObject
 		expectQuery func(mock sqlmock.Sqlmock)
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    rsmodel.ValidatedObject
+		want    rsmodels.ValidatedObject
 		wantErr error
 	}{
 		{
@@ -249,7 +249,7 @@ func TestDefaultRepository_GetById(t *testing.T) {
 
 func TestDefaultRepository_DeleteById(t *testing.T) {
 	type args struct {
-		id          rsmodel.ValidatedObject
+		id          rsmodels.ValidatedObject
 		expectQuery func(mock sqlmock.Sqlmock)
 	}
 	tests := []struct {
@@ -305,7 +305,7 @@ func TestDefaultRepository_DeleteById(t *testing.T) {
 
 func TestDefaultRepository_Save(t *testing.T) {
 	type args struct {
-		src         rsmodel.ValidatedObject
+		src         rsmodels.ValidatedObject
 		expectQuery func(mock sqlmock.Sqlmock)
 	}
 	tests := []struct {
@@ -361,15 +361,15 @@ func TestDefaultRepository_Save(t *testing.T) {
 
 func TestDefaultRepository_Patch(t *testing.T) {
 	type args struct {
-		src         rsmodel.ValidatedObject
-		data        rsmodel.ValidatedObject
+		src         rsmodels.ValidatedObject
+		data        rsmodels.ValidatedObject
 		expectQuery func(mock sqlmock.Sqlmock)
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr error
-		want    rsmodel.ValidatedObject
+		want    rsmodels.ValidatedObject
 	}{
 		{
 			name: "pass",
@@ -546,7 +546,7 @@ func TestDefaultRepository_List(t *testing.T) {
 func TestDefaultRepository_FirstOrCreate(t *testing.T) {
 	type args struct {
 		expectQuery func(mock sqlmock.Sqlmock)
-		mockData    rsmodel.ValidatedObject
+		mockData    rsmodels.ValidatedObject
 	}
 	cases := []struct {
 		name    string

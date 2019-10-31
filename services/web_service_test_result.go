@@ -5,20 +5,20 @@ import (
 	"github.com/realsangil/apimonitor/pkg/amerr"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
 
 type WebServiceTestResultService interface {
-	GetResultListByTestId(webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage)
+	GetResultListByTestId(webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type WebServiceTestResultServiceImpl struct {
 	webServiceTestResultRepository repositories.WebServiceTestResultRepository
 }
 
-func (service *WebServiceTestResultServiceImpl) GetResultListByTestId(webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodel.PaginatedList, *amerr.ErrorWithLanguage) {
+func (service *WebServiceTestResultServiceImpl) GetResultListByTestId(webServiceTest *models.WebServiceTest, request models.WebServiceTestResultListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage) {
 	list, err := service.webServiceTestResultRepository.GetResultList(rsdb.GetConnection(), webServiceTest, request)
 	if err != nil {
 		switch err {

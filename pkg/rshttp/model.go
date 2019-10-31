@@ -30,7 +30,7 @@ func (header Header) GetHttpHeader() http.Header {
 	if rsvalid.IsZero(header) {
 		return nil
 	}
-	var httpHeader http.Header
+	httpHeader := make(http.Header)
 	for k, v := range header {
 		httpHeader.Add(k, convertInterfaceToString(v))
 	}

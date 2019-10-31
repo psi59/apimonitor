@@ -7,13 +7,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
 type WebServiceTestResult struct {
-	DefaultValidateChecker
+	rsmodels.DefaultValidateChecker
 	Id               string    `json:"id" gorm:"Size:36"`
-	WebServiceTestId int64     `json:"web_service_test_id"`
+	WebServiceTestId int64     `json:"web_service_test_id" gorm:"NOT NULL"`
 	IsSuccess        bool      `json:"is_success"`
 	StatusCode       int       `json:"status_code"`
 	ResponseTime     int64     `json:"response_time"`

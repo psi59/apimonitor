@@ -15,7 +15,7 @@ import (
 
 	sierrors "github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
-	"github.com/realsangil/apimonitor/pkg/rsmodel"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 )
 
 const (
@@ -29,12 +29,12 @@ const (
 type MockFunc func(mock sqlmock.Sqlmock)
 
 type Repository interface {
-	Create(tx Connection, src rsmodel.ValidatedObject) error
-	FirstOrCreate(tx Connection, src rsmodel.ValidatedObject) error
-	DeleteById(tx Connection, id rsmodel.ValidatedObject) error
-	GetById(tx Connection, id rsmodel.ValidatedObject) error
-	Save(tx Connection, src rsmodel.ValidatedObject) error
-	Patch(tx Connection, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error
+	Create(tx Connection, src rsmodels.ValidatedObject) error
+	FirstOrCreate(tx Connection, src rsmodels.ValidatedObject) error
+	DeleteById(tx Connection, id rsmodels.ValidatedObject) error
+	GetById(tx Connection, id rsmodels.ValidatedObject) error
+	Save(tx Connection, src rsmodels.ValidatedObject) error
+	Patch(tx Connection, src rsmodels.ValidatedObject, data rsmodels.ValidatedObject) error
 	List(tx Connection, items interface{}, filter ListFilter, orders Orders) (totalCount int, err error)
 	CreateTable(tx Connection) error
 }
@@ -59,7 +59,7 @@ func checkItems(items interface{}) error {
 	return nil
 }
 
-func (repo *DefaultRepository) Patch(tx Connection, src rsmodel.ValidatedObject, data rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) Patch(tx Connection, src rsmodels.ValidatedObject, data rsmodels.ValidatedObject) error {
 	if !data.IsValidated() {
 		return ErrInvalidModel
 	}
@@ -67,22 +67,22 @@ func (repo *DefaultRepository) Patch(tx Connection, src rsmodel.ValidatedObject,
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) Save(tx Connection, src rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) Save(tx Connection, src rsmodels.ValidatedObject) error {
 	err := tx.Conn().Save(src).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) DeleteById(tx Connection, id rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) DeleteById(tx Connection, id rsmodels.ValidatedObject) error {
 	err := tx.Conn().Debug().Delete(id).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) GetById(tx Connection, id rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) GetById(tx Connection, id rsmodels.ValidatedObject) error {
 	err := tx.Conn().First(id).Error
 	return HandleSQLError(err)
 }
 
-func (repo *DefaultRepository) Create(tx Connection, src rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) Create(tx Connection, src rsmodels.ValidatedObject) error {
 	if !src.IsValidated() {
 		return ErrInvalidModel
 	}
@@ -92,7 +92,7 @@ func (repo *DefaultRepository) Create(tx Connection, src rsmodel.ValidatedObject
 	return nil
 }
 
-func (repo *DefaultRepository) FirstOrCreate(tx Connection, src rsmodel.ValidatedObject) error {
+func (repo *DefaultRepository) FirstOrCreate(tx Connection, src rsmodels.ValidatedObject) error {
 	if !src.IsValidated() {
 		return ErrInvalidModel
 	}

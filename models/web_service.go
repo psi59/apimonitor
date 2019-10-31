@@ -8,13 +8,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/realsangil/apimonitor/pkg/rserrors"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
 var regexExtractHost = regexp.MustCompile(`^(?:(?:(https?)?(?:\:?\/\/))|(?:\/\/))?(((?:\w{1,100}\.)?\w{2,300}\.\w{2,100})(\.\w{2,100})*)`)
 
 type WebService struct {
-	DefaultValidateChecker
+	rsmodels.DefaultValidateChecker
 	Id           int64              `json:"id" gorm:"private_key"`
 	Host         string             `json:"host" gorm:"unique"`
 	HttpSchema   string             `json:"http_schema" gorm:"Size:20;Default:'http'"`
@@ -32,7 +33,7 @@ func (webService *WebService) Validate() error {
 	) {
 		return errors.Wrap(rserrors.ErrInvalidParameter, "webService")
 	}
-	webService.isValidated = true
+	webService.SetValidated()
 	return nil
 }
 
@@ -146,6 +147,5 @@ func (schedule WebServiceSchedule) GetDuration() time.Duration {
 }
 
 func (schedule WebServiceSchedule) GetTicker() *time.Ticker {
-	// return time.NewTicker(schedule.GetDuration())
-	return time.NewTicker(time.Second)
+	return time.NewTicker(schedule.GetDuration())
 }
