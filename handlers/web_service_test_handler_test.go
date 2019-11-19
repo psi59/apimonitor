@@ -207,7 +207,7 @@ func TestWebServiceTestHandlerImpl_GetWebServiceTest(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks.Context, mockWebServiceTestService *mocks2.WebServiceTestService, mockWebServiceService *mocks2.WebServiceService) {
 				setContextLanguageForTest(mockContext)
-				mockContext.On("ParamInt64", WebServiceTestIdParam).Return(webServiceTestId, nil)
+				mockContext.On("ParamInt64", TestIdParam).Return(webServiceTestId, nil)
 
 				mockWebServiceTestService.On("GetWebServiceTestById", webServiceTestWithId).
 					Run(func(args mock.Arguments) {
@@ -224,7 +224,7 @@ func TestWebServiceTestHandlerImpl_GetWebServiceTest(t *testing.T) {
 			name: "invalid webServiceTest id parameter",
 			mockFunc: func(mockContext *mocks.Context, mockWebServiceTestService *mocks2.WebServiceTestService, webServiceService *mocks2.WebServiceService) {
 				setContextLanguageForTest(mockContext)
-				mockContext.On("ParamInt64", WebServiceTestIdParam).Return(zeroInt64, rserrors.ErrInvalidParameter)
+				mockContext.On("ParamInt64", TestIdParam).Return(zeroInt64, rserrors.ErrInvalidParameter)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(langForTest),
 		},
@@ -232,7 +232,7 @@ func TestWebServiceTestHandlerImpl_GetWebServiceTest(t *testing.T) {
 			name: "unexpected WebServiceTestService.GetWebServiceTestById error",
 			mockFunc: func(mockContext *mocks.Context, mockWebServiceTestService *mocks2.WebServiceTestService, webServiceService *mocks2.WebServiceService) {
 				setContextLanguageForTest(mockContext)
-				mockContext.On("ParamInt64", WebServiceTestIdParam).Return(webServiceTestId, nil)
+				mockContext.On("ParamInt64", TestIdParam).Return(webServiceTestId, nil)
 
 				mockWebServiceTestService.On("GetWebServiceTestById", webServiceTestWithId).
 					Return(amerr.GetErrInternalServer())
@@ -273,7 +273,7 @@ func TestWebServiceTestHandlerImpl_DeleteWebServiceTest(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks.Context, mockWebServiceTestService *mocks2.WebServiceTestService, mockWebServiceService *mocks2.WebServiceService) {
 				setContextLanguageForTest(mockContext)
-				mockContext.On("ParamInt64", WebServiceTestIdParam).Return(webServiceTestId, nil)
+				mockContext.On("ParamInt64", TestIdParam).Return(webServiceTestId, nil)
 
 				mockWebServiceTestService.On("DeleteWebServiceTestById", webServiceTestWithId).
 					Return(nil)
@@ -286,7 +286,7 @@ func TestWebServiceTestHandlerImpl_DeleteWebServiceTest(t *testing.T) {
 			name: "invalid webServiceTest id parameter",
 			mockFunc: func(mockContext *mocks.Context, mockWebServiceTestService *mocks2.WebServiceTestService, webServiceService *mocks2.WebServiceService) {
 				setContextLanguageForTest(mockContext)
-				mockContext.On("ParamInt64", WebServiceTestIdParam).Return(zeroInt64, rserrors.ErrInvalidParameter)
+				mockContext.On("ParamInt64", TestIdParam).Return(zeroInt64, rserrors.ErrInvalidParameter)
 			},
 			wantErr: amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(langForTest),
 		},
@@ -294,7 +294,7 @@ func TestWebServiceTestHandlerImpl_DeleteWebServiceTest(t *testing.T) {
 			name: "unexpected WebServiceTestService.GetWebServiceTestById error",
 			mockFunc: func(mockContext *mocks.Context, mockWebServiceTestService *mocks2.WebServiceTestService, webServiceService *mocks2.WebServiceService) {
 				setContextLanguageForTest(mockContext)
-				mockContext.On("ParamInt64", WebServiceTestIdParam).Return(webServiceTestId, nil)
+				mockContext.On("ParamInt64", TestIdParam).Return(webServiceTestId, nil)
 
 				mockWebServiceTestService.On("DeleteWebServiceTestById", webServiceTestWithId).
 					Return(amerr.GetErrInternalServer())

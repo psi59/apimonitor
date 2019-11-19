@@ -15,15 +15,15 @@ import (
 	"github.com/realsangil/apimonitor/services"
 )
 
-type WebServiceTestResultHandler interface {
+type TestResultHandler interface {
 	GetList(c echo.Context) error
 }
 
-type WebServiceTestResultHandlerImpl struct {
-	webServiceTestResultService services.WebServiceTestResultService
+type TestResultHandlerImpl struct {
+	TestResultService services.TestResultService
 }
 
-func (handler *WebServiceTestResultHandlerImpl) GetList(c echo.Context) error {
+func (handler *TestResultHandlerImpl) GetList(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
@@ -42,22 +42,22 @@ func (handler *WebServiceTestResultHandlerImpl) GetList(c echo.Context) error {
 	}
 	isSuccess := ctx.QueryParam("is_success")
 
-	webServiceTestId, err := ctx.ParamInt64(WebServiceTestIdParam)
+	testId, err := ctx.ParamInt64(TestIdParam)
 	if err != nil {
 		rslog.Error(err)
 		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
 	}
 
-	request := models.WebServiceTestResultListRequest{
+	request := models.TestResultListRequest{
 		Page:      int(page),
 		NumItem:   int(numItem),
 		IsSuccess: models.IsSuccess(isSuccess),
 		// StartTestedAt: time.Time{},
 		// EndTestedAt:   time.Time{},
 	}
-	webServiceTest := &models.WebServiceTest{Id: webServiceTestId}
+	test := &models.WebServiceTest{Id: testId}
 
-	list, aerr := handler.webServiceTestResultService.GetResultListByTestId(webServiceTest, request)
+	list, aerr := handler.TestResultService.GetResultListByTestId(test, request)
 	if aerr != nil {
 		return aerr.GetErrFromLanguage(lang)
 	}
@@ -65,9 +65,9 @@ func (handler *WebServiceTestResultHandlerImpl) GetList(c echo.Context) error {
 	return ctx.JSON(http.StatusOK, list)
 }
 
-func NewWebServiceTestResultHandler(webServiceTestResultService services.WebServiceTestResultService) (WebServiceTestResultHandler, error) {
-	if rsvalid.IsZero(webServiceTestResultService) {
+func NewTestResultHandler(testResultService services.TestResultService) (TestResultHandler, error) {
+	if rsvalid.IsZero(testResultService) {
 		return nil, rserrors.ErrInvalidParameter
 	}
-	return &WebServiceTestResultHandlerImpl{webServiceTestResultService: webServiceTestResultService}, nil
+	return &TestResultHandlerImpl{TestResultService: testResultService}, nil
 }

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	WebServiceTestIdParam = "webServiceTest_id"
+	TestIdParam = "test_id"
 )
 
 type WebServiceTestHandler interface {
@@ -70,7 +70,7 @@ func (handler *WebServiceTestHandlerImpl) GetWebServiceTest(c echo.Context) erro
 	}
 
 	lang := ctx.Language()
-	webServiceTestId, _ := ctx.ParamInt64(WebServiceTestIdParam)
+	webServiceTestId, _ := ctx.ParamInt64(TestIdParam)
 	if rsvalid.IsZero(webServiceTestId) {
 		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
 	}
@@ -90,7 +90,7 @@ func (handler *WebServiceTestHandlerImpl) DeleteWebServiceTest(c echo.Context) e
 	}
 
 	lang := ctx.Language()
-	webServiceTestId, _ := ctx.ParamInt64(WebServiceTestIdParam)
+	webServiceTestId, _ := ctx.ParamInt64(TestIdParam)
 	if rsvalid.IsZero(webServiceTestId) {
 		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
 	}

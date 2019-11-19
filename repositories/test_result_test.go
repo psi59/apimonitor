@@ -13,18 +13,18 @@ import (
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
 
-var webServiceTestResultColumn = []string{
+var testResultColumn = []string{
 	"id", "web_service_test_id", "is_success", "status_code", "response_time", "tested_at",
 }
 
-func TestWebServiceTestResultRepositoryImp_GetResultList(t *testing.T) {
+func TestTestResultRepositoryImp_GetResultList(t *testing.T) {
 	testutils.MonkeyAll()
 
 	webServiceTest := &models.WebServiceTest{Id: 1}
 
 	type args struct {
 		webServiceTest *models.WebServiceTest
-		request        models.WebServiceTestResultListRequest
+		request        models.TestResultListRequest
 	}
 	tests := []struct {
 		name     string
@@ -37,7 +37,7 @@ func TestWebServiceTestResultRepositoryImp_GetResultList(t *testing.T) {
 			name: "pass",
 			args: args{
 				webServiceTest: webServiceTest,
-				request: models.WebServiceTestResultListRequest{
+				request: models.TestResultListRequest{
 					Page:      1,
 					NumItem:   1,
 					IsSuccess: "",
@@ -48,22 +48,22 @@ func TestWebServiceTestResultRepositoryImp_GetResultList(t *testing.T) {
 			mockFunc: func(mock sqlmock.Sqlmock) {
 				countRows := sqlmock.NewRows(countColumn).AddRow(1)
 				mock.ExpectQuery(`SELECT count\(\*\)`).WithArgs(1).WillReturnRows(countRows)
-				rows := sqlmock.NewRows(webServiceTestResultColumn).
-					AddRow("web_service_test_result_0", 1, 1, 200, 1, time.Now())
+				rows := sqlmock.NewRows(testResultColumn).
+					AddRow("test_result_0", 1, 1, 200, 1, time.Now())
 				mock.ExpectQuery("SELECT").WithArgs(1).WillReturnRows(rows)
 			},
 			want: &rsmodels.PaginatedList{
 				CurrentPage: 1,
 				NumItem:     1,
 				TotalCount:  1,
-				Items: []*models.WebServiceTestResult{
+				Items: []*models.TestResult{
 					{
-						Id:               "web_service_test_result_0",
-						WebServiceTestId: 1,
-						IsSuccess:        true,
-						StatusCode:       200,
-						ResponseTime:     1,
-						TestedAt:         time.Now(),
+						Id:           "test_result_0",
+						TestId:       1,
+						IsSuccess:    true,
+						StatusCode:   200,
+						ResponseTime: 1,
+						TestedAt:     time.Now(),
 					},
 				},
 			},
@@ -72,7 +72,7 @@ func TestWebServiceTestResultRepositoryImp_GetResultList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository := &WebServiceTestResultRepositoryImp{rsdb.NewDefaultRepository()}
+			repository := &TestResultRepositoryImp{rsdb.NewDefaultRepository()}
 			gormDB, mock, err := rsdb.CreateMockDB()
 			if err != nil {
 				t.Fatal(err)

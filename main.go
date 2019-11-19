@@ -45,12 +45,12 @@ func main() {
 
 	webServiceRepository := repositories.NewWebServiceRepository()
 	webServiceTestRepository := repositories.NewWebServiceTestRepository()
-	webServiceTestResultRepository := repositories.NewWebServiceTestResultRepository()
+	testResultRepository := repositories.NewTestResultRepository()
 
 	if err := rsdb.CreateTables(
 		webServiceRepository,
 		webServiceTestRepository,
-		webServiceTestResultRepository,
+		testResultRepository,
 	); err != nil {
 		rslog.Fatal(err)
 	}
@@ -65,12 +65,12 @@ func main() {
 		rslog.Fatal(err)
 	}
 
-	webServiceTestResultService, err := services.NewWebServiceTestResultService(webServiceTestResultRepository)
+	testResultService, err := services.NewTestResultService(testResultRepository)
 	if err != nil {
 		rslog.Fatal(err)
 	}
 
-	webServiceSchedulerManager, err := services.NewWebServiceScheduleManager(webServiceRepository, webServiceTestResultRepository)
+	webServiceSchedulerManager, err := services.NewWebServiceScheduleManager(webServiceRepository, testResultRepository)
 	if err != nil {
 		rslog.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func main() {
 		rslog.Fatal(err)
 	}
 
-	webServiceTestResultHandler, err := handlers.NewWebServiceTestResultHandler(webServiceTestResultService)
+	testResultHandler, err := handlers.NewTestResultHandler(testResultService)
 	if err != nil {
 		rslog.Fatal(err)
 	}
@@ -115,11 +115,11 @@ func main() {
 			v1WebServiceTest.POST("", webServiceTestHandler.CreateWebServiceTest)
 			v1WebServiceTest.GET("", webServiceTestHandler.GetWebServiceTestList)
 
-			v1OneWebServiceTest := v1WebServiceTest.Group(fmt.Sprintf("/:%s", handlers.WebServiceTestIdParam))
+			v1OneWebServiceTest := v1WebServiceTest.Group(fmt.Sprintf("/:%s", handlers.TestIdParam))
 			{
 				v1OneWebServiceTest.GET("", webServiceTestHandler.GetWebServiceTest)
 				v1OneWebServiceTest.DELETE("", webServiceTestHandler.DeleteWebServiceTest)
-				v1OneWebServiceTest.GET("/results", webServiceTestResultHandler.GetList)
+				v1OneWebServiceTest.GET("/results", testResultHandler.GetList)
 			}
 		}
 	}

@@ -11,29 +11,29 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
-type WebServiceTestResult struct {
+type TestResult struct {
 	rsmodels.DefaultValidateChecker
-	Id               string    `json:"id" gorm:"Size:36"`
-	WebServiceTestId int64     `json:"web_service_test_id" gorm:"NOT NULL"`
-	IsSuccess        bool      `json:"is_success"`
-	StatusCode       int       `json:"status_code"`
-	ResponseTime     int64     `json:"response_time"`
-	TestedAt         time.Time `json:"tested_at"`
+	Id           string    `json:"id" gorm:"Size:36"`
+	TestId       int64     `json:"test_id" gorm:"NOT NULL"`
+	IsSuccess    bool      `json:"is_success"`
+	StatusCode   int       `json:"status_code"`
+	ResponseTime int64     `json:"response_time"`
+	TestedAt     time.Time `json:"tested_at"`
 }
 
-func (result WebServiceTestResult) Validate() error {
-	if rsvalid.IsZero(result.Id, result.WebServiceTestId, result.StatusCode, result.ResponseTime, result.TestedAt) {
+func (result TestResult) Validate() error {
+	if rsvalid.IsZero(result.Id, result.TestId, result.StatusCode, result.ResponseTime, result.TestedAt) {
 		return rserrors.ErrInvalidParameter
 	}
 	result.SetValidated()
 	return nil
 }
 
-func (result WebServiceTestResult) TableName() string {
-	return "web_service_test_results"
+func (result TestResult) TableName() string {
+	return "test_results"
 }
 
-type WebServiceTestResultListRequest struct {
+type TestResultListRequest struct {
 	Page          int
 	NumItem       int
 	IsSuccess     IsSuccess

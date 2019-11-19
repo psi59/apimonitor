@@ -39,11 +39,11 @@ type WebServiceScheduleManager interface {
 }
 
 type webServiceScheduleManager struct {
-	webServiceSchedulers           map[interface{}]WebServiceScheduler
-	webServiceRepository           repositories.WebServiceRepository
-	webServiceTestResultRepository repositories.WebServiceTestResultRepository
-	resultChan                     chan *models.WebServiceTestResult
-	closeChan                      chan bool
+	webServiceSchedulers map[interface{}]WebServiceScheduler
+	webServiceRepository repositories.WebServiceRepository
+	testResultRepository repositories.TestResultRepository
+	resultChan           chan *models.TestResult
+	closeChan            chan bool
 }
 
 func (manager *webServiceScheduleManager) Run() error {
@@ -63,7 +63,7 @@ func (manager *webServiceScheduleManager) Run() error {
 		// 	TODO: 에러 프린팅
 		case result := <-manager.resultChan:
 			rslog.Debugf("result='%+v'", result)
-			if err := manager.webServiceTestResultRepository.Create(rsdb.GetConnection(), result); err != nil {
+			if err := manager.testResultRepository.Create(rsdb.GetConnection(), result); err != nil {
 				errChan <- err
 			}
 		case <-manager.closeChan:
@@ -118,22 +118,22 @@ func (manager *webServiceScheduleManager) Close() error {
 	return nil
 }
 
-func NewWebServiceScheduleManager(webServiceRepository repositories.WebServiceRepository, webServiceTestResultRepository repositories.WebServiceTestResultRepository) (WebServiceScheduleManager, error) {
-	if rsvalid.IsZero(webServiceRepository, webServiceTestResultRepository) {
+func NewWebServiceScheduleManager(webServiceRepository repositories.WebServiceRepository, testResultRepository repositories.TestResultRepository) (WebServiceScheduleManager, error) {
+	if rsvalid.IsZero(webServiceRepository, testResultRepository) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "WebServiceScheduler")
 	}
 	return &webServiceScheduleManager{
-		webServiceSchedulers:           make(map[interface{}]WebServiceScheduler),
-		webServiceRepository:           webServiceRepository,
-		webServiceTestResultRepository: webServiceTestResultRepository,
-		resultChan:                     make(chan *models.WebServiceTestResult, 1000),
+		webServiceSchedulers: make(map[interface{}]WebServiceScheduler),
+		webServiceRepository: webServiceRepository,
+		testResultRepository: testResultRepository,
+		resultChan:           make(chan *models.TestResult, 1000),
 	}, nil
 }
 
 type webServiceScheduler struct {
 	webService *models.WebService
 	closeChan  chan bool
-	resultChan chan<- *models.WebServiceTestResult
+	resultChan chan<- *models.TestResult
 }
 
 func (schedule *webServiceScheduler) Run() error {
@@ -148,10 +148,10 @@ func (schedule *webServiceScheduler) Run() error {
 					return err
 				}
 				rslog.Debugf("executed test:: id='%v'", test.Id)
-				schedule.resultChan <- &models.WebServiceTestResult{
+				schedule.resultChan <- &models.TestResult{
 					DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 					Id:                     rsstr.NewUUID(),
-					WebServiceTestId:       test.Id,
+					TestId:                 test.Id,
 					IsSuccess:              test.Assertion.Assert(res),
 					StatusCode:             res.GetStatusCode(),
 					ResponseTime:           res.GetResponseTime(),
@@ -171,7 +171,7 @@ func (schedule *webServiceScheduler) Close() error {
 	return nil
 }
 
-func NewWebServiceScheduler(webService *models.WebService, resultChan chan<- *models.WebServiceTestResult) (WebServiceScheduler, error) {
+func NewWebServiceScheduler(webService *models.WebService, resultChan chan<- *models.TestResult) (WebServiceScheduler, error) {
 	if rsvalid.IsZero(webService) {
 		return nil, rserrors.ErrInvalidParameter
 	}
