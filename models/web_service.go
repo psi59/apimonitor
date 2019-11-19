@@ -47,6 +47,7 @@ func (webService *WebService) UpdateFromRequest(request WebServiceRequest) error
 	webService.HttpSchema = host[1]
 	webService.Desc = request.Desc
 	webService.Favicon = request.Favicon
+	webService.Schedule = request.Schedule
 	webService.LastModified = time.Now()
 
 	return nil
@@ -80,9 +81,10 @@ func hostRegexpFindStringSubmatch(host string) ([]string, error) {
 }
 
 type WebServiceRequest struct {
-	Host    string `json:"host"`
-	Desc    string `json:"desc"`
-	Favicon string `json:"favicon"`
+	Host     string             `json:"host"`
+	Desc     string             `json:"desc"`
+	Favicon  string             `json:"favicon"`
+	Schedule WebServiceSchedule `json:"schedule"`
 }
 
 type WebServiceListRequest struct {
