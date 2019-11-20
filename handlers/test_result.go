@@ -16,14 +16,44 @@ import (
 )
 
 type TestResultHandler interface {
-	GetList(c echo.Context) error
+	GetListByWebService(c echo.Context) error
+	GetListByTest(c echo.Context) error
 }
 
 type TestResultHandlerImpl struct {
 	TestResultService services.TestResultService
 }
 
-func (handler *TestResultHandlerImpl) GetList(c echo.Context) error {
+func (handler *TestResultHandlerImpl) GetListByWebService(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lang := ctx.Language()
+	var request models.TestResultListRequest
+	if err := ctx.Bind(&request); err != nil {
+		return errors.WithStack(err)
+	}
+	request.SetZeroToDefault()
+
+	webServiceId, err := ctx.ParamInt64(WebServiceIdParam)
+	if err != nil {
+		rslog.Error(err)
+		return amerr.GetErrorsFromCode(amerr.ErrTestNotFound).GetErrFromLanguage(lang)
+	}
+
+	webService := &models.WebService{Id: webServiceId}
+
+	list, aerr := handler.TestResultService.GetResultListByWebServiceId(webService, request)
+	if aerr != nil {
+		return aerr.GetErrFromLanguage(lang)
+	}
+
+	return ctx.JSON(http.StatusOK, list)
+}
+
+func (handler *TestResultHandlerImpl) GetListByTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)

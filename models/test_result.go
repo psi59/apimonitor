@@ -34,11 +34,20 @@ func (result TestResult) TableName() string {
 }
 
 type TestResultListRequest struct {
-	Page          int
-	NumItem       int
-	IsSuccess     IsSuccess
-	StartTestedAt time.Time
-	EndTestedAt   time.Time
+	Page          int       `query:"page"`
+	NumItem       int       `query:"num_item"`
+	IsSuccess     IsSuccess `query:"is_success"`
+	StartTestedAt time.Time `query:"start_tested_at"`
+	EndTestedAt   time.Time `query:"end_tested_at"`
+}
+
+func (request *TestResultListRequest) SetZeroToDefault() {
+	if request.Page == 0 {
+		request.Page = 1
+	}
+	if request.NumItem == 0 {
+		request.NumItem = 200
+	}
 }
 
 type IsSuccess string

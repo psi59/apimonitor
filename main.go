@@ -109,7 +109,7 @@ func main() {
 				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
 				v1OneWebService.POST("/tests", testHandler.CreateTest)
 				v1OneWebService.GET("/tests", testHandler.GetTestList)
-
+				v1OneWebService.GET("/results", testResultHandler.GetListByWebService)
 			}
 		}
 
@@ -117,7 +117,7 @@ func main() {
 		{
 			v1OneTest.GET("", testHandler.GetTest)
 			v1OneTest.DELETE("", testHandler.DeleteTest)
-			v1OneTest.GET("/results", testResultHandler.GetList)
+			v1OneTest.GET("/results", testResultHandler.GetListByTest)
 		}
 	}
 
