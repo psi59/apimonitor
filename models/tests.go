@@ -17,7 +17,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
-type WebServiceTest struct {
+type Test struct {
 	rsmodels.DefaultValidateChecker
 	Id           int64               `json:"id"`
 	WebServiceId int64               `json:"-"`
@@ -34,44 +34,44 @@ type WebServiceTest struct {
 	LastModified time.Time           `json:"last_modified"`
 }
 
-func (webServiceTest *WebServiceTest) UpdateFromRequest(request WebServiceTestRequest) error {
-	webServiceTest.Path = request.Path
-	webServiceTest.HttpMethod = request.HttpMethod
-	webServiceTest.ContentType = request.ContentType
-	webServiceTest.Desc = request.Desc
-	webServiceTest.RequestData = request.RequestData
-	webServiceTest.Header = request.Header
-	webServiceTest.QueryParam = request.QueryParam
-	webServiceTest.LastModified = time.Now()
-	return webServiceTest.Validate()
+func (test *Test) UpdateFromRequest(request TestRequest) error {
+	test.Path = request.Path
+	test.HttpMethod = request.HttpMethod
+	test.ContentType = request.ContentType
+	test.Desc = request.Desc
+	test.RequestData = request.RequestData
+	test.Header = request.Header
+	test.QueryParam = request.QueryParam
+	test.LastModified = time.Now()
+	return test.Validate()
 }
 
-func (webServiceTest *WebServiceTest) Validate() error {
+func (test *Test) Validate() error {
 	if rsvalid.IsZero(
-		webServiceTest.WebServiceId,
-		webServiceTest.Path,
-		webServiceTest.HttpMethod,
-		webServiceTest.ContentType,
-		webServiceTest.Created,
-		webServiceTest.LastModified,
+		test.WebServiceId,
+		test.Path,
+		test.HttpMethod,
+		test.ContentType,
+		test.Created,
+		test.LastModified,
 	) {
 		return errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint")
 	}
-	if err := webServiceTest.Path.Validate(); err != nil {
+	if err := test.Path.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := webServiceTest.HttpMethod.Validate(); err != nil {
+	if err := test.HttpMethod.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := webServiceTest.ContentType.Validate(); err != nil {
+	if err := test.ContentType.Validate(); err != nil {
 		return err
 	}
-	webServiceTest.SetValidated()
+	test.SetValidated()
 	return nil
 }
 
-func (webServiceTest WebServiceTest) Execute(webService *WebService) (rshttp.Response, error) {
-	request, err := webServiceTest.ToHttpRequest(webService)
+func (test Test) Execute(webService *WebService) (rshttp.Response, error) {
+	request, err := test.ToHttpRequest(webService)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -85,7 +85,7 @@ func (webServiceTest WebServiceTest) Execute(webService *WebService) (rshttp.Res
 	return res, nil
 }
 
-func (webServiceTest WebServiceTest) ToHttpRequest(webService *WebService) (*rshttp.Request, error) {
+func (test Test) ToHttpRequest(webService *WebService) (*rshttp.Request, error) {
 	if rsvalid.IsZero(webService) {
 		return nil, errors.WithStack(rserrors.ErrInvalidParameter)
 	}
@@ -93,36 +93,36 @@ func (webServiceTest WebServiceTest) ToHttpRequest(webService *WebService) (*rsh
 	rawUrl := url.URL{
 		Scheme: webService.HttpSchema,
 		Host:   webService.Host,
-		Path:   webServiceTest.Path.String(),
+		Path:   test.Path.String(),
 	}
 	rslog.Debugf("rawUrl='%s'", rawUrl.String())
 
 	request := rshttp.Request{
 		RawUrl:  rawUrl.String(),
-		Header:  webServiceTest.Header,
-		Query:   webServiceTest.QueryParam,
-		Body:    webServiceTest.RequestData,
-		Timeout: webServiceTest.Timeout,
+		Header:  test.Header,
+		Query:   test.QueryParam,
+		Body:    test.RequestData,
+		Timeout: test.Timeout,
 	}
 
 	return &request, nil
 }
 
-func NewWebServiceTest(webService *WebService, request WebServiceTestRequest) (*WebServiceTest, error) {
+func NewTest(webService *WebService, request TestRequest) (*Test, error) {
 	if rsvalid.IsZero(webService, request) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint")
 	}
-	webServiceTest := &WebServiceTest{
+	test := &Test{
 		WebServiceId: webService.Id,
 		Created:      time.Now(),
 	}
-	if err := webServiceTest.UpdateFromRequest(request); err != nil {
+	if err := test.UpdateFromRequest(request); err != nil {
 		return nil, errors.WithStack(err)
 	}
-	return webServiceTest, nil
+	return test, nil
 }
 
-type WebServiceTestRequest struct {
+type TestRequest struct {
 	Path        rshttp.EndpointPath `json:"path"`
 	HttpMethod  rshttp.Method       `json:"http_method"`
 	ContentType rshttp.ContentType  `json:"content_type"`
@@ -132,7 +132,7 @@ type WebServiceTestRequest struct {
 	QueryParam  rshttp.Query        `json:"query_param" gorm:"Type:JSON"`
 }
 
-func (request WebServiceTestRequest) Validate() error {
+func (request TestRequest) Validate() error {
 	if rsvalid.IsZero(
 		request.Path,
 		request.HttpMethod,
@@ -152,7 +152,7 @@ func (request WebServiceTestRequest) Validate() error {
 	return nil
 }
 
-type WebServiceTestListItem struct {
+type TestListItem struct {
 	Id           int64               `json:"id"`
 	WebServiceId int64               `json:"-"`
 	WebService   *WebService         `json:"web_service" gorm:"foreignkey:WebServiceId"`
@@ -163,11 +163,11 @@ type WebServiceTestListItem struct {
 	LastModified time.Time           `json:"last_modified"`
 }
 
-func (webServiceTestListItem WebServiceTestListItem) MarshalJSON() ([]byte, error) {
+func (testListItem TestListItem) MarshalJSON() ([]byte, error) {
 	endpointUrl := &url.URL{
-		Scheme: webServiceTestListItem.WebService.HttpSchema,
-		Host:   webServiceTestListItem.WebService.Host,
-		Path:   webServiceTestListItem.Path.String(),
+		Scheme: testListItem.WebService.HttpSchema,
+		Host:   testListItem.WebService.Host,
+		Path:   testListItem.Path.String(),
 	}
 	return json.Marshal(struct {
 		Id           int64               `json:"id"`
@@ -178,21 +178,21 @@ func (webServiceTestListItem WebServiceTestListItem) MarshalJSON() ([]byte, erro
 		Created      time.Time           `json:"created"`
 		LastModified time.Time           `json:"last_modified"`
 	}{
-		Id:           webServiceTestListItem.Id,
-		Path:         webServiceTestListItem.Path,
+		Id:           testListItem.Id,
+		Path:         testListItem.Path,
 		Url:          endpointUrl.String(),
-		HttpMethod:   webServiceTestListItem.HttpMethod,
-		Desc:         webServiceTestListItem.Desc,
-		Created:      webServiceTestListItem.Created,
-		LastModified: webServiceTestListItem.LastModified,
+		HttpMethod:   testListItem.HttpMethod,
+		Desc:         testListItem.Desc,
+		Created:      testListItem.Created,
+		LastModified: testListItem.LastModified,
 	})
 }
 
-func (webServiceTestListItem WebServiceTestListItem) TableName() string {
-	return "web_service_tests"
+func (testListItem TestListItem) TableName() string {
+	return "tests"
 }
 
-type WebServiceTestListRequest struct {
+type TestListRequest struct {
 	Page         int
 	NumItem      int
 	WebServiceId int64

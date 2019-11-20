@@ -19,19 +19,19 @@ const (
 	TestIdParam = "test_id"
 )
 
-type WebServiceTestHandler interface {
-	CreateWebServiceTest(c echo.Context) error
-	GetWebServiceTest(c echo.Context) error
-	DeleteWebServiceTest(c echo.Context) error
-	GetWebServiceTestList(c echo.Context) error
+type TestHandler interface {
+	CreateTest(c echo.Context) error
+	GetTest(c echo.Context) error
+	DeleteTest(c echo.Context) error
+	GetTestList(c echo.Context) error
 }
 
-type WebServiceTestHandlerImpl struct {
-	webServiceService     services.WebServiceService
-	webServiceTestService services.WebServiceTestService
+type TestHandlerImpl struct {
+	webServiceService services.WebServiceService
+	testService       services.TestService
 }
 
-func (handler *WebServiceTestHandlerImpl) CreateWebServiceTest(c echo.Context) error {
+func (handler *TestHandlerImpl) CreateTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
@@ -49,61 +49,61 @@ func (handler *WebServiceTestHandlerImpl) CreateWebServiceTest(c echo.Context) e
 		return err.GetErrFromLanguage(lang)
 	}
 
-	var request models.WebServiceTestRequest
+	var request models.TestRequest
 	if err := ctx.Bind(&request); err != nil {
 		rslog.Error(err)
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	webServiceTest, aerr := handler.webServiceTestService.CreateWebServiceTest(webService, request)
+	test, aerr := handler.testService.CreateTest(webService, request)
 	if aerr != nil {
 		return aerr.GetErrFromLanguage(lang)
 	}
 
-	return ctx.JSON(http.StatusOK, webServiceTest)
+	return ctx.JSON(http.StatusOK, test)
 }
 
-func (handler *WebServiceTestHandlerImpl) GetWebServiceTest(c echo.Context) error {
+func (handler *TestHandlerImpl) GetTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	lang := ctx.Language()
-	webServiceTestId, _ := ctx.ParamInt64(TestIdParam)
-	if rsvalid.IsZero(webServiceTestId) {
-		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
+	testId, _ := ctx.ParamInt64(TestIdParam)
+	if rsvalid.IsZero(testId) {
+		return amerr.GetErrorsFromCode(amerr.ErrTestNotFound).GetErrFromLanguage(lang)
 	}
 
-	webServiceTest := &models.WebServiceTest{Id: webServiceTestId}
-	if err := handler.webServiceTestService.GetWebServiceTestById(webServiceTest); err != nil {
+	test := &models.Test{Id: testId}
+	if err := handler.testService.GetTestById(test); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
-	return ctx.JSON(http.StatusOK, webServiceTest)
+	return ctx.JSON(http.StatusOK, test)
 }
 
-func (handler *WebServiceTestHandlerImpl) DeleteWebServiceTest(c echo.Context) error {
+func (handler *TestHandlerImpl) DeleteTest(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	lang := ctx.Language()
-	webServiceTestId, _ := ctx.ParamInt64(TestIdParam)
-	if rsvalid.IsZero(webServiceTestId) {
-		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
+	testId, _ := ctx.ParamInt64(TestIdParam)
+	if rsvalid.IsZero(testId) {
+		return amerr.GetErrorsFromCode(amerr.ErrTestNotFound).GetErrFromLanguage(lang)
 	}
 
-	webServiceTest := &models.WebServiceTest{Id: webServiceTestId}
-	if err := handler.webServiceTestService.DeleteWebServiceTestById(webServiceTest); err != nil {
+	test := &models.Test{Id: testId}
+	if err := handler.testService.DeleteTestById(test); err != nil {
 		return err.GetErrFromLanguage(lang)
 	}
 
 	return ctx.JSON(http.StatusOK, nil)
 }
 
-func (handler *WebServiceTestHandlerImpl) GetWebServiceTestList(c echo.Context) error {
+func (handler *TestHandlerImpl) GetTestList(c echo.Context) error {
 	ctx, err := middlewares.ConvertToCustomContext(c)
 	if err != nil {
 		return errors.WithStack(err)
@@ -129,7 +129,7 @@ func (handler *WebServiceTestHandlerImpl) GetWebServiceTestList(c echo.Context) 
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	list, aerr := handler.webServiceTestService.GetWebServiceTestList(models.WebServiceTestListRequest{
+	list, aerr := handler.testService.GetTestList(models.TestListRequest{
 		Page:         int(pageInt64),
 		NumItem:      int(numItemInt64),
 		WebServiceId: webServiceIdInt64,
@@ -141,15 +141,15 @@ func (handler *WebServiceTestHandlerImpl) GetWebServiceTestList(c echo.Context) 
 	return ctx.JSON(http.StatusOK, list)
 }
 
-func NewWebServiceTestHandler(webServiceService services.WebServiceService, webServiceTestService services.WebServiceTestService) (WebServiceTestHandler, error) {
+func NewTestHandler(webServiceService services.WebServiceService, testService services.TestService) (TestHandler, error) {
 	if rsvalid.IsZero(
 		webServiceService,
-		webServiceTestService,
+		testService,
 	) {
-		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "WebServiceTestHandler")
+		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "TestHandler")
 	}
-	return &WebServiceTestHandlerImpl{
-		webServiceService:     webServiceService,
-		webServiceTestService: webServiceTestService,
+	return &TestHandlerImpl{
+		webServiceService: webServiceService,
+		testService:       testService,
 	}, nil
 }

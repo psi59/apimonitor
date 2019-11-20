@@ -14,17 +14,17 @@ import (
 )
 
 var testResultColumn = []string{
-	"id", "web_service_test_id", "is_success", "status_code", "response_time", "tested_at",
+	"id", "test_id", "is_success", "status_code", "response_time", "tested_at",
 }
 
 func TestTestResultRepositoryImp_GetResultList(t *testing.T) {
 	testutils.MonkeyAll()
 
-	webServiceTest := &models.WebServiceTest{Id: 1}
+	test := &models.Test{Id: 1}
 
 	type args struct {
-		webServiceTest *models.WebServiceTest
-		request        models.TestResultListRequest
+		test    *models.Test
+		request models.TestResultListRequest
 	}
 	tests := []struct {
 		name     string
@@ -36,7 +36,7 @@ func TestTestResultRepositoryImp_GetResultList(t *testing.T) {
 		{
 			name: "pass",
 			args: args{
-				webServiceTest: webServiceTest,
+				test: test,
 				request: models.TestResultListRequest{
 					Page:      1,
 					NumItem:   1,
@@ -79,7 +79,7 @@ func TestTestResultRepositoryImp_GetResultList(t *testing.T) {
 			}
 			conn := rsdb.NewConnection(gormDB)
 			tt.mockFunc(mock)
-			got, err := repository.GetResultList(conn, tt.args.webServiceTest, tt.args.request)
+			got, err := repository.GetResultList(conn, tt.args.test, tt.args.request)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err)
 		})

@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	webServiceColumns     = []string{"id", "host", "http_schema", "desc", "favicon", "schedule", "created", "last_modified"}
-	webServiceTestsColums = []string{
+	webServiceColumns = []string{"id", "host", "http_schema", "desc", "favicon", "schedule", "created", "last_modified"}
+	testsColums       = []string{
 		"id",
 		"web_service_id",
 		"path",
@@ -45,12 +45,12 @@ func TestWebServiceRepositoryImpl_GetAllWebServicesWithTests(t *testing.T) {
 	}
 
 	getGithubTestRows := func() *sqlmock.Rows {
-		githubTestRows := sqlmock.NewRows(webServiceTestsColums)
+		githubTestRows := sqlmock.NewRows(testsColums)
 		githubTestRows.AddRow(1, 1, "/", rshttp.MethodGet, rshttp.MIMEApplicationJSON, "", nil, nil, nil, 0, nil, time.Now(), time.Now())
 		return githubTestRows
 	}
 
-	githubTests := []models.WebServiceTest{
+	githubTests := []models.Test{
 		{
 			Id:           1,
 			WebServiceId: 1,
@@ -87,7 +87,7 @@ func TestWebServiceRepositoryImpl_GetAllWebServicesWithTests(t *testing.T) {
 			Desc:         "구글",
 			Favicon:      "",
 			Schedule:     models.ScheduleFiveMinute,
-			Tests:        []models.WebServiceTest{},
+			Tests:        []models.Test{},
 			Created:      time.Now(),
 			LastModified: time.Now(),
 		},
@@ -103,7 +103,7 @@ func TestWebServiceRepositoryImpl_GetAllWebServicesWithTests(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery(`SELECT (.+) FROM "web_services"`).WillReturnRows(getWebServiceRows())
-				mock.ExpectQuery(`SELECT (.+) FROM "web_service_tests"`).WillReturnRows(getGithubTestRows())
+				mock.ExpectQuery(`SELECT (.+) FROM "tests"`).WillReturnRows(getGithubTestRows())
 			},
 			want:    webServices,
 			wantErr: nil,
@@ -120,7 +120,7 @@ func TestWebServiceRepositoryImpl_GetAllWebServicesWithTests(t *testing.T) {
 			name: "failed_web_services_tests_query",
 			mockFunc: func(mock sqlmock.Sqlmock) {
 				mock.ExpectQuery(`SELECT \* FROM "web_services"`).WillReturnRows(getWebServiceRows())
-				mock.ExpectQuery(`SELECT(.+)"web_service_tests"`).WillReturnError(rserrors.ErrUnexpected)
+				mock.ExpectQuery(`SELECT(.+)"tests"`).WillReturnError(rserrors.ErrUnexpected)
 			},
 			want:    nil,
 			wantErr: rserrors.ErrUnexpected,

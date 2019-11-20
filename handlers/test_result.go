@@ -45,7 +45,7 @@ func (handler *TestResultHandlerImpl) GetList(c echo.Context) error {
 	testId, err := ctx.ParamInt64(TestIdParam)
 	if err != nil {
 		rslog.Error(err)
-		return amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound).GetErrFromLanguage(lang)
+		return amerr.GetErrorsFromCode(amerr.ErrTestNotFound).GetErrFromLanguage(lang)
 	}
 
 	request := models.TestResultListRequest{
@@ -55,7 +55,7 @@ func (handler *TestResultHandlerImpl) GetList(c echo.Context) error {
 		// StartTestedAt: time.Time{},
 		// EndTestedAt:   time.Time{},
 	}
-	test := &models.WebServiceTest{Id: testId}
+	test := &models.Test{Id: testId}
 
 	list, aerr := handler.TestResultService.GetResultListByTestId(test, request)
 	if aerr != nil {

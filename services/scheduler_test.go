@@ -24,7 +24,7 @@ func Test_webServiceScheduler_Run(t *testing.T) {
 		Desc:       "",
 		Favicon:    "",
 		Schedule:   models.ScheduleOneMinute,
-		Tests: []models.WebServiceTest{
+		Tests: []models.Test{
 			{
 				Id:           1,
 				WebServiceId: 1,
@@ -151,7 +151,7 @@ func Test_webServiceScheduleManager_Run(t *testing.T) {
 						webService: &models.WebService{
 							Id:       1,
 							Schedule: models.ScheduleOneMinute,
-							Tests: []models.WebServiceTest{
+							Tests: []models.Test{
 								{
 									Id:           1,
 									WebServiceId: 1,

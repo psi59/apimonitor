@@ -28,7 +28,7 @@ func TestEndpointRepositoryImpl_GetList(t *testing.T) {
 	rows := sqlmock.NewRows(endpointListItemColumns).AddRow(int64(1), int64(1), "/test", rshttp.MethodGet, "", time.Now(), time.Now())
 
 	type args struct {
-		items  *[]*models.WebServiceTestListItem
+		items  *[]*models.TestListItem
 		filter rsdb.ListFilter
 		orders rsdb.Orders
 	}
@@ -42,7 +42,7 @@ func TestEndpointRepositoryImpl_GetList(t *testing.T) {
 		{
 			name: "pass",
 			args: args{
-				items: &[]*models.WebServiceTestListItem{},
+				items: &[]*models.TestListItem{},
 				filter: rsdb.ListFilter{
 					Page:    1,
 					NumItem: 20,
@@ -69,7 +69,7 @@ func TestEndpointRepositoryImpl_GetList(t *testing.T) {
 			}
 			tt.mockFunc(mock)
 
-			repository := &WebServiceTestRepositoryImpl{
+			repository := &TestRepositoryImpl{
 				Repository: &rsdb.DefaultRepository{},
 			}
 			conn := rsdb.NewConnection(gormDB)

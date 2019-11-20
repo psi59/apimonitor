@@ -39,7 +39,7 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 					Favicon: "",
 				}
 				webService := &models.WebService{
-					DefaultValidateChecker: models.ValidatedDefaultValidateChecker,
+					DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 					Id:                     1,
 					Host:                   "realsangil.github.io",
 					HttpSchema:             "https",

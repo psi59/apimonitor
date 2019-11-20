@@ -8,17 +8,17 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
-type WebServiceTestRepository interface {
+type TestRepository interface {
 	rsdb.Repository
-	GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.WebServiceTest) error
-	GetList(conn rsdb.Connection, items *[]*models.WebServiceTestListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error)
+	GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Test) error
+	GetList(conn rsdb.Connection, items *[]*models.TestListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error)
 }
 
-type WebServiceTestRepositoryImpl struct {
+type TestRepositoryImpl struct {
 	rsdb.Repository
 }
 
-func (repository *WebServiceTestRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.WebServiceTest) error {
+func (repository *TestRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Test) error {
 	if err := conn.Conn().
 		Where("web_service_id=? AND id=?", endpoint.WebServiceId, endpoint.Id).
 		First(endpoint).Error; err != nil {
@@ -28,7 +28,7 @@ func (repository *WebServiceTestRepositoryImpl) GetByIdAndWebServiceId(conn rsdb
 	return nil
 }
 
-func (repository *WebServiceTestRepositoryImpl) GetList(conn rsdb.Connection, items *[]*models.WebServiceTestListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
+func (repository *TestRepositoryImpl) GetList(conn rsdb.Connection, items *[]*models.TestListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
 	where := rsdb.NewEmptyQuery()
 	if v, exist := filter.Conditions["web_service_id"]; exist {
 		w, _ := rsdb.NewQuery("web_service_id=?", v)
@@ -52,8 +52,8 @@ func (repository *WebServiceTestRepositoryImpl) GetList(conn rsdb.Connection, it
 	return totalCount, nil
 }
 
-func (repository WebServiceTestRepositoryImpl) CreateTable(transaction rsdb.Connection) error {
-	m := &models.WebServiceTest{}
+func (repository TestRepositoryImpl) CreateTable(transaction rsdb.Connection) error {
+	m := &models.Test{}
 	tx := transaction.Conn()
 	if tx.HasTable(m) {
 		return nil
@@ -67,6 +67,6 @@ func (repository WebServiceTestRepositoryImpl) CreateTable(transaction rsdb.Conn
 	return nil
 }
 
-func NewWebServiceTestRepository() WebServiceTestRepository {
-	return &WebServiceTestRepositoryImpl{&rsdb.DefaultRepository{}}
+func NewTestRepository() TestRepository {
+	return &TestRepositoryImpl{&rsdb.DefaultRepository{}}
 }

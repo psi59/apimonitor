@@ -11,19 +11,19 @@ import (
 )
 
 type TestResultService interface {
-	GetResultListByTestId(test *models.WebServiceTest, request models.TestResultListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
+	GetResultListByTestId(test *models.Test, request models.TestResultListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
 }
 
 type TestResultServiceImpl struct {
 	testResultRepository repositories.TestResultRepository
 }
 
-func (service *TestResultServiceImpl) GetResultListByTestId(test *models.WebServiceTest, request models.TestResultListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage) {
+func (service *TestResultServiceImpl) GetResultListByTestId(test *models.Test, request models.TestResultListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage) {
 	list, err := service.testResultRepository.GetResultList(rsdb.GetConnection(), test, request)
 	if err != nil {
 		switch err {
 		case rsdb.ErrForeignKeyConstraint:
-			return nil, amerr.GetErrorsFromCode(amerr.ErrWebServiceTestNotFound)
+			return nil, amerr.GetErrorsFromCode(amerr.ErrTestNotFound)
 		default:
 			return nil, amerr.GetErrInternalServer()
 		}

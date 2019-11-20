@@ -12,7 +12,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/testutils"
 )
 
-func TestWebServiceTest_Validate(t *testing.T) {
+func TestTest_Validate(t *testing.T) {
 	type fields struct {
 		DefaultValidateChecker rsmodels.DefaultValidateChecker
 		Id                     int64
@@ -94,7 +94,7 @@ func TestWebServiceTest_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			webServiceTest := &WebServiceTest{
+			test := &Test{
 				DefaultValidateChecker: tt.fields.DefaultValidateChecker,
 				Id:                     tt.fields.Id,
 				WebServiceId:           tt.fields.WebServiceId,
@@ -107,14 +107,14 @@ func TestWebServiceTest_Validate(t *testing.T) {
 				Created:                tt.fields.Created,
 				LastModified:           tt.fields.LastModified,
 			}
-			if err := webServiceTest.Validate(); (err != nil) != tt.wantErr {
+			if err := test.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
+func TestTest_UpdateFromRequest(t *testing.T) {
 	testutils.MonkeyAll()
 
 	mockRequestData := rsjson.MapJson{
@@ -128,7 +128,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 	}
 
 	type args struct {
-		request WebServiceTestRequest
+		request TestRequest
 	}
 	tests := []struct {
 		name    string
@@ -138,7 +138,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 		{
 			name: "pass",
 			args: args{
-				request: WebServiceTestRequest{
+				request: TestRequest{
 					Path:        "/path/to/file",
 					HttpMethod:  rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -152,7 +152,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 		{
 			name: "pass",
 			args: args{
-				request: WebServiceTestRequest{
+				request: TestRequest{
 					Path:        "/path/to/file",
 					HttpMethod:  rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -166,7 +166,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 		{
 			name: "invalid request",
 			args: args{
-				request: WebServiceTestRequest{
+				request: TestRequest{
 					Path:        "/???/asdas",
 					HttpMethod:  rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -180,7 +180,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 		{
 			name: "invalid request",
 			args: args{
-				request: WebServiceTestRequest{
+				request: TestRequest{
 					Path: "/path/to/file",
 					// HttpMethod:  http.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
@@ -194,7 +194,7 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 		{
 			name: "invalid request",
 			args: args{
-				request: WebServiceTestRequest{
+				request: TestRequest{
 					Path:       "/path/to/file",
 					HttpMethod: rshttp.MethodGet,
 					// ContentType: http.MIMEApplicationJSON,
@@ -208,25 +208,25 @@ func TestWebServiceTest_UpdateFromRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			webServiceTest := &WebServiceTest{
+			test := &Test{
 				WebServiceId: 1,
 				Created:      time.Now(),
 			}
-			if err := webServiceTest.UpdateFromRequest(tt.args.request); (err != nil) != tt.wantErr {
+			if err := test.UpdateFromRequest(tt.args.request); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateFromRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestNewWebServiceTest(t *testing.T) {
+func TestNewTest(t *testing.T) {
 	testutils.MonkeyAll()
 
 	webService := &WebService{
 		Id: 1,
 	}
 
-	request := WebServiceTestRequest{
+	request := TestRequest{
 		Path:        "/path/to/file",
 		HttpMethod:  rshttp.MethodGet,
 		ContentType: rshttp.MIMEApplicationJSON,
@@ -234,12 +234,12 @@ func TestNewWebServiceTest(t *testing.T) {
 
 	type args struct {
 		webService *WebService
-		request    WebServiceTestRequest
+		request    TestRequest
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *WebServiceTest
+		want    *Test
 		wantErr bool
 	}{
 		{
@@ -248,7 +248,7 @@ func TestNewWebServiceTest(t *testing.T) {
 				webService: webService,
 				request:    request,
 			},
-			want: &WebServiceTest{
+			want: &Test{
 				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 				WebServiceId:           1,
 				Path:                   request.Path,
@@ -284,7 +284,7 @@ func TestNewWebServiceTest(t *testing.T) {
 			name: "invalid request",
 			args: args{
 				webService: webService,
-				request: WebServiceTestRequest{
+				request: TestRequest{
 					Path: "//??/asd",
 				},
 			},
@@ -294,7 +294,7 @@ func TestNewWebServiceTest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewWebServiceTest(tt.args.webService, tt.args.request)
+			got, err := NewTest(tt.args.webService, tt.args.request)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -304,7 +304,7 @@ func TestNewWebServiceTest(t *testing.T) {
 	}
 }
 
-func TestWebServiceTestRequest_Validate(t *testing.T) {
+func TestTestRequest_Validate(t *testing.T) {
 	type fields struct {
 		Path        rshttp.EndpointPath
 		HttpMethod  rshttp.Method
@@ -381,7 +381,7 @@ func TestWebServiceTestRequest_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := WebServiceTestRequest{
+			e := TestRequest{
 				Path:        tt.fields.Path,
 				HttpMethod:  tt.fields.HttpMethod,
 				ContentType: tt.fields.ContentType,

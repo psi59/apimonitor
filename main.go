@@ -44,12 +44,12 @@ func main() {
 	e.HTTPErrorHandler = middlewares.ErrorHandleMiddleware
 
 	webServiceRepository := repositories.NewWebServiceRepository()
-	webServiceTestRepository := repositories.NewWebServiceTestRepository()
+	testRepository := repositories.NewTestRepository()
 	testResultRepository := repositories.NewTestResultRepository()
 
 	if err := rsdb.CreateTables(
 		webServiceRepository,
-		webServiceTestRepository,
+		testRepository,
 		testResultRepository,
 	); err != nil {
 		rslog.Fatal(err)
@@ -60,7 +60,7 @@ func main() {
 		rslog.Fatal(err)
 	}
 
-	webServiceTestService, err := services.NewWebServiceTestService(webServiceTestRepository)
+	testService, err := services.NewTestService(testRepository)
 	if err != nil {
 		rslog.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func main() {
 		rslog.Fatal(err)
 	}
 
-	webServiceTestHandler, err := handlers.NewWebServiceTestHandler(webServiceService, webServiceTestService)
+	testHandler, err := handlers.NewTestHandler(webServiceService, testService)
 	if err != nil {
 		rslog.Fatal(err)
 	}
@@ -110,16 +110,16 @@ func main() {
 			}
 		}
 
-		v1WebServiceTest := v1.Group("/tests")
+		v1Test := v1.Group("/tests")
 		{
-			v1WebServiceTest.POST("", webServiceTestHandler.CreateWebServiceTest)
-			v1WebServiceTest.GET("", webServiceTestHandler.GetWebServiceTestList)
+			v1Test.POST("", testHandler.CreateTest)
+			v1Test.GET("", testHandler.GetTestList)
 
-			v1OneWebServiceTest := v1WebServiceTest.Group(fmt.Sprintf("/:%s", handlers.TestIdParam))
+			v1OneTest := v1Test.Group(fmt.Sprintf("/:%s", handlers.TestIdParam))
 			{
-				v1OneWebServiceTest.GET("", webServiceTestHandler.GetWebServiceTest)
-				v1OneWebServiceTest.DELETE("", webServiceTestHandler.DeleteWebServiceTest)
-				v1OneWebServiceTest.GET("/results", testResultHandler.GetList)
+				v1OneTest.GET("", testHandler.GetTest)
+				v1OneTest.DELETE("", testHandler.DeleteTest)
+				v1OneTest.GET("/results", testResultHandler.GetList)
 			}
 		}
 	}

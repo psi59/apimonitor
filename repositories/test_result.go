@@ -8,7 +8,7 @@ import (
 
 type TestResultRepository interface {
 	rsdb.Repository
-	GetResultList(conn rsdb.Connection, test *models.WebServiceTest, request models.TestResultListRequest) (*rsmodels.PaginatedList, error)
+	GetResultList(conn rsdb.Connection, test *models.Test, request models.TestResultListRequest) (*rsmodels.PaginatedList, error)
 }
 
 type TestResultRepositoryImp struct {
@@ -21,7 +21,7 @@ func (repository *TestResultRepositoryImp) CreateTable(conn rsdb.Connection) err
 		return rsdb.HandleSQLError(err)
 	}
 	if err := conn.Conn().Model(m).
-		AddForeignKey("test_id", "web_service_tests(id)", "CASCADE", "CASCADE").Error; err != nil {
+		AddForeignKey("test_id", "tests(id)", "CASCADE", "CASCADE").Error; err != nil {
 		return rsdb.HandleSQLError(err)
 	}
 	if err := conn.Conn().Model(m).AddIndex("idx_tested_at_status_code_is_success", "tested_at", "status_code", "is_success").Error; err != nil {
@@ -31,9 +31,9 @@ func (repository *TestResultRepositoryImp) CreateTable(conn rsdb.Connection) err
 }
 
 func (repository *TestResultRepositoryImp) GetResultList(
-	conn rsdb.Connection, test *models.WebServiceTest, request models.TestResultListRequest) (*rsmodels.PaginatedList, error) {
+	conn rsdb.Connection, test *models.Test, request models.TestResultListRequest) (*rsmodels.PaginatedList, error) {
 	sql := conn.Conn().Table("test_results AS tr").Select("*")
-	sql = sql.Joins("INNER JOIN web_service_tests AS t ON tr.web_service_test_id=t.id AND t.id=?", test.Id)
+	sql = sql.Joins("INNER JOIN tests AS t ON tr.test_id=t.id AND t.id=?", test.Id)
 
 	query := rsdb.NewEmptyQuery()
 	if !request.IsSuccess.IsBoth() {

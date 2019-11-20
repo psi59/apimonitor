@@ -22,7 +22,7 @@ type WebService struct {
 	Desc         string             `json:"desc" gorm:"Type:TEXT"`
 	Favicon      string             `json:"favicon" gorm:"Type:Text"`
 	Schedule     WebServiceSchedule `json:"schedule" gorm:"Size:20"`
-	Tests        []WebServiceTest   `json:"-" gorm:"foreignkey:WebServiceId"`
+	Tests        []Test             `json:"-" gorm:"foreignkey:WebServiceId"`
 	Created      time.Time          `json:"created"`
 	LastModified time.Time          `json:"last_modified"`
 }
