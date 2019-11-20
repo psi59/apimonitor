@@ -28,7 +28,7 @@ func main() {
 	}
 
 	if err := rsdb.Init(&serverConfig.DB); err != nil {
-		logrus.Fatal(err)
+		rslog.Fatal(err)
 	}
 
 	e := echo.New()
@@ -107,20 +107,17 @@ func main() {
 				v1OneWebService.GET("", webServiceHandler.GetWebServiceById)
 				v1OneWebService.DELETE("", webServiceHandler.DeleteWebServiceById)
 				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
+				v1OneWebService.POST("/tests", testHandler.CreateTest)
+				v1OneWebService.GET("/tests", testHandler.GetTestList)
+
 			}
 		}
 
-		v1Test := v1.Group("/tests")
+		v1OneTest := v1.Group(fmt.Sprintf("/tests/:%s", handlers.TestIdParam))
 		{
-			v1Test.POST("", testHandler.CreateTest)
-			v1Test.GET("", testHandler.GetTestList)
-
-			v1OneTest := v1Test.Group(fmt.Sprintf("/:%s", handlers.TestIdParam))
-			{
-				v1OneTest.GET("", testHandler.GetTest)
-				v1OneTest.DELETE("", testHandler.DeleteTest)
-				v1OneTest.GET("/results", testResultHandler.GetList)
-			}
+			v1OneTest.GET("", testHandler.GetTest)
+			v1OneTest.DELETE("", testHandler.DeleteTest)
+			v1OneTest.GET("/results", testResultHandler.GetList)
 		}
 	}
 
