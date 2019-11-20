@@ -39,7 +39,7 @@ func (handler *TestHandlerImpl) CreateTest(c echo.Context) error {
 
 	lang := ctx.Language()
 
-	webServiceId, _ := ctx.QueryParamInt64(WebServiceIdParam, 0)
+	webServiceId, _ := ctx.ParamInt64(WebServiceIdParam)
 	if rsvalid.IsZero(webServiceId) {
 		return amerr.GetErrorsFromCode(amerr.ErrWebServiceNotFound).GetErrFromLanguage(lang)
 	}
@@ -123,7 +123,7 @@ func (handler *TestHandlerImpl) GetTestList(c echo.Context) error {
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
 	}
 
-	webServiceIdInt64, _ := ctx.QueryParamInt64("web_service_id", 0)
+	webServiceIdInt64, _ := ctx.ParamInt64("web_service_id")
 	if webServiceIdInt64 == 0 {
 		rslog.Error(err)
 		return amerr.GetErrorsFromCode(amerr.ErrBadRequest).GetErrFromLanguage(lang)
