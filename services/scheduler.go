@@ -1,16 +1,12 @@
 package services
 
 import (
-	"time"
-
 	"github.com/pkg/errors"
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
 	"github.com/realsangil/apimonitor/pkg/rserrors"
 	"github.com/realsangil/apimonitor/pkg/rslog"
-	"github.com/realsangil/apimonitor/pkg/rsmodels"
-	"github.com/realsangil/apimonitor/pkg/rsstr"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 	"github.com/realsangil/apimonitor/repositories"
 )
@@ -137,32 +133,33 @@ type webServiceScheduler struct {
 }
 
 func (schedule *webServiceScheduler) Run() error {
-	ticker := schedule.webService.Schedule.GetTicker()
-	rslog.Debug("Running...")
-	for {
-		select {
-		case <-ticker.C:
-			for _, test := range schedule.webService.Tests {
-				res, err := test.Execute(schedule.webService)
-				if err != nil {
-					return err
-				}
-				rslog.Debugf("executed test:: id='%v'", test.Id)
-				schedule.resultChan <- &models.TestResult{
-					DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
-					Id:                     rsstr.NewUUID(),
-					TestId:                 test.Id,
-					IsSuccess:              test.Assertion.Assert(res),
-					StatusCode:             res.GetStatusCode(),
-					ResponseTime:           res.GetResponseTime(),
-					TestedAt:               time.Now(),
-				}
-			}
-		case <-schedule.closeChan:
-			rslog.Debugf("webService close:: \tid='%v'", schedule.webService.Id)
-			return nil
-		}
-	}
+	// ticker := schedule.webService.Schedule.GetTicker()
+	// rslog.Debug("Running...")
+	// for {
+	// 	select {
+	// 	case <-ticker.C:
+	// 		for _, test := range schedule.webService.Tests {
+	// 			res, err := test.Execute(schedule.webService)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			rslog.Debugf("executed test:: id='%v'", test.Id)
+	// 			schedule.resultChan <- &models.TestResult{
+	// 				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
+	// 				Id:                     rsstr.NewUUID(),
+	// 				TestId:                 test.Id,
+	// 				IsSuccess:              test.Assertion.Assert(res),
+	// 				StatusCode:             res.GetStatusCode(),
+	// 				ResponseTime:           res.GetResponseTime(),
+	// 				TestedAt:               time.Now(),
+	// 			}
+	// 		}
+	// 	case <-schedule.closeChan:
+	// 		rslog.Debugf("webService close:: \tid='%v'", schedule.webService.Id)
+	// 		return nil
+	// 	}
+	// }
+	return nil
 }
 
 func (schedule *webServiceScheduler) Close() error {

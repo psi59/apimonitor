@@ -70,15 +70,15 @@ func main() {
 		rslog.Fatal(err)
 	}
 
-	webServiceSchedulerManager, err := services.NewWebServiceScheduleManager(webServiceRepository, testResultRepository)
-	if err != nil {
-		rslog.Fatal(err)
-	}
-	go func() {
-		if err := webServiceSchedulerManager.Refresh(); err != nil {
-			rslog.Fatal(err)
-		}
-	}()
+	// webServiceSchedulerManager, err := services.NewWebServiceScheduleManager(webServiceRepository, testResultRepository)
+	// if err != nil {
+	// 	rslog.Fatal(err)
+	// }
+	// go func() {
+	// 	if err := webServiceSchedulerManager.Refresh(); err != nil {
+	// 		rslog.Fatal(err)
+	// 	}
+	// }()
 
 	webServiceHandler, err := handlers.NewWebServiceHandler(webServiceService)
 	if err != nil {
@@ -107,9 +107,13 @@ func main() {
 				v1OneWebService.GET("", webServiceHandler.GetWebServiceById)
 				v1OneWebService.DELETE("", webServiceHandler.DeleteWebServiceById)
 				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
-				v1OneWebService.POST("/tests", testHandler.CreateTest)
-				v1OneWebService.GET("/tests", testHandler.GetTestList)
 				v1OneWebService.GET("/results", testResultHandler.GetListByWebService)
+
+				v1Test := v1OneWebService.Group("/tests")
+				{
+					v1Test.POST("", testHandler.CreateTest)
+					v1Test.GET("", testHandler.GetTestList)
+				}
 			}
 		}
 
@@ -117,6 +121,7 @@ func main() {
 		{
 			v1OneTest.GET("", testHandler.GetTest)
 			v1OneTest.DELETE("", testHandler.DeleteTest)
+			v1OneTest.PUT("", testHandler.UpdateTest)
 			v1OneTest.GET("/results", testResultHandler.GetListByTest)
 		}
 	}

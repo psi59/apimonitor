@@ -33,30 +33,30 @@ func TestWebServiceServiceImpl_CreateWebService(t *testing.T) {
 	testutils.MonkeyAll()
 
 	validatedRequest := models.WebServiceRequest{
-		Host:    "https://realsangil.github.io",
-		Desc:    "sangil's dev blog",
-		Favicon: "",
+		Host:        "https://realsangil.github.io",
+		Description: "sangil's dev blog",
+		Favicon:     "",
 	}
 
 	validatedWebServiceWithoutId := &models.WebService{
 		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Host:                   "realsangil.github.io",
-		HttpSchema:             "https",
-		Desc:                   "sangil's dev blog",
+		Schema:                 "https",
+		Description:            "sangil's dev blog",
 		Favicon:                "",
-		Created:                time.Now(),
-		LastModified:           time.Now(),
+		CreatedAt:              time.Now(),
+		ModifiedAt:             time.Now(),
 	}
 
 	validatedWebService := &models.WebService{
 		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Id:                     1,
 		Host:                   "realsangil.github.io",
-		HttpSchema:             "https",
-		Desc:                   "sangil's dev blog",
+		Schema:                 "https",
+		Description:            "sangil's dev blog",
 		Favicon:                "",
-		Created:                time.Now(),
-		LastModified:           time.Now(),
+		CreatedAt:              time.Now(),
+		ModifiedAt:             time.Now(),
 	}
 
 	mockFuncWithError := func(err error) webServiceMockFunc {
@@ -105,9 +105,9 @@ func TestWebServiceServiceImpl_CreateWebService(t *testing.T) {
 			args: args{
 
 				request: models.WebServiceRequest{
-					Host:    "ftp://realsangil.github.io",
-					Desc:    "sangil's dev blog",
-					Favicon: "",
+					Host:        "ftp://realsangil.github.io",
+					Description: "sangil's dev blog",
+					Favicon:     "",
 				},
 			},
 			mockFunc: func(mockTx *mocks2.Connection, mockWebServiceRepository *mocks.WebServiceRepository) {
@@ -225,11 +225,11 @@ func TestWebServiceServiceImpl_GetWebServiceById(t *testing.T) {
 		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Id:                     1,
 		Host:                   "realsangil.github.io",
-		HttpSchema:             "https",
-		Desc:                   "sangil's dev blog",
+		Schema:                 "https",
+		Description:            "sangil's dev blog",
 		Favicon:                "",
-		Created:                time.Now(),
-		LastModified:           time.Now(),
+		CreatedAt:              time.Now(),
+		ModifiedAt:             time.Now(),
 	}
 
 	type args struct {
@@ -307,13 +307,13 @@ func TestWebServiceServiceImpl_DeleteWebServiceById(t *testing.T) {
 
 	webServiceWithId := &models.WebService{Id: 1}
 	webService := &models.WebService{
-		Id:           1,
-		Host:         "realsangil.github.io",
-		HttpSchema:   "https",
-		Desc:         "sangil's dev blog",
-		Favicon:      "",
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		Id:          1,
+		Host:        "realsangil.github.io",
+		Schema:      "https",
+		Description: "sangil's dev blog",
+		Favicon:     "",
+		CreatedAt:   time.Now(),
+		ModifiedAt:  time.Now(),
 	}
 
 	type args struct {
@@ -412,27 +412,27 @@ func TestWebServiceServiceImpl_UpdateWebServiceById(t *testing.T) {
 
 	webServiceWithId := &models.WebService{Id: 1}
 	webService := &models.WebService{
-		Id:           1,
-		Host:         "realsangil.github.io",
-		HttpSchema:   "https",
-		Desc:         "sangil's dev blog",
-		Favicon:      "",
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		Id:          1,
+		Host:        "realsangil.github.io",
+		Schema:      "https",
+		Description: "sangil's dev blog",
+		Favicon:     "",
+		CreatedAt:   time.Now(),
+		ModifiedAt:  time.Now(),
 	}
 	request := models.WebServiceRequest{
-		Host:    "https://www.lalaworks.com",
-		Desc:    "lalaworks website",
-		Favicon: "",
+		Host:        "https://www.lalaworks.com",
+		Description: "lalaworks website",
+		Favicon:     "",
 	}
 	updatedWebService := &models.WebService{
-		Id:           1,
-		Host:         "www.lalaworks.com",
-		HttpSchema:   "https",
-		Desc:         "lalaworks website",
-		Favicon:      "",
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		Id:          1,
+		Host:        "www.lalaworks.com",
+		Schema:      "https",
+		Description: "lalaworks website",
+		Favicon:     "",
+		CreatedAt:   time.Now(),
+		ModifiedAt:  time.Now(),
 	}
 
 	type args struct {
@@ -559,13 +559,13 @@ func TestWebServiceServiceImpl_GetWebServiceList(t *testing.T) {
 
 	paginatedList := []*models.WebService{
 		{
-			Id:           1,
-			Host:         "realsangil.github.io",
-			HttpSchema:   "https",
-			Desc:         "sangil's dev blog",
-			Favicon:      "",
-			Created:      time.Now(),
-			LastModified: time.Now(),
+			Id:          1,
+			Host:        "realsangil.github.io",
+			Schema:      "https",
+			Description: "sangil's dev blog",
+			Favicon:     "",
+			CreatedAt:   time.Now(),
+			ModifiedAt:  time.Now(),
 		},
 	}
 

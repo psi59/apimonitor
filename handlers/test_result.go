@@ -37,11 +37,7 @@ func (handler *TestResultHandlerImpl) GetListByWebService(c echo.Context) error 
 	}
 	request.SetZeroToDefault()
 
-	webServiceId, err := ctx.ParamInt64(WebServiceIdParam)
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrorsFromCode(amerr.ErrTestNotFound).GetErrFromLanguage(lang)
-	}
+	webServiceId := ctx.Param(WebServiceIdParam)
 
 	webService := &models.WebService{Id: webServiceId}
 
@@ -72,12 +68,7 @@ func (handler *TestResultHandlerImpl) GetListByTest(c echo.Context) error {
 	}
 	isSuccess := ctx.QueryParam("is_success")
 
-	testId, err := ctx.ParamInt64(TestIdParam)
-	if err != nil {
-		rslog.Error(err)
-		return amerr.GetErrorsFromCode(amerr.ErrTestNotFound).GetErrFromLanguage(lang)
-	}
-
+	testId := ctx.Param(TestIdParam)
 	request := models.TestResultListRequest{
 		Page:      int(page),
 		NumItem:   int(numItem),

@@ -34,19 +34,19 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				request := models.WebServiceRequest{
-					Host:    "https://realsangil.github.io",
-					Desc:    "sangil's blog",
-					Favicon: "",
+					Host:        "https://realsangil.github.io",
+					Description: "sangil's blog",
+					Favicon:     "",
 				}
 				webService := &models.WebService{
 					DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 					Id:                     1,
 					Host:                   "realsangil.github.io",
-					HttpSchema:             "https",
-					Desc:                   "sangil's blog",
+					Schema:                 "https",
+					Description:            "sangil's blog",
 					Favicon:                "",
-					Created:                time.Now(),
-					LastModified:           time.Now(),
+					CreatedAt:              time.Now(),
+					ModifiedAt:             time.Now(),
 				}
 
 				mockContext.On("Language").Return(lang)
@@ -75,9 +75,9 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 			name: "service error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				request := models.WebServiceRequest{
-					Host:    "https://realsangil.github.io",
-					Desc:    "sangil's blog",
-					Favicon: "",
+					Host:        "https://realsangil.github.io",
+					Description: "sangil's blog",
+					Favicon:     "",
 				}
 
 				mockContext.On("Language").Return("ko")
@@ -95,9 +95,9 @@ func TestWebServiceHandlerImpl_CreateWebService(t *testing.T) {
 			name: "service error",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				request := models.WebServiceRequest{
-					Host:    "https://realsangil.github.io",
-					Desc:    "sangil's blog",
-					Favicon: "",
+					Host:        "https://realsangil.github.io",
+					Description: "sangil's blog",
+					Favicon:     "",
 				}
 
 				mockContext.On("Language").Return("ko")
@@ -196,13 +196,13 @@ func TestWebServiceHandlerImpl_GetWebServiceById(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				webService := &models.WebService{
-					Id:           1,
-					Host:         "realsangil.github.io",
-					HttpSchema:   "https",
-					Desc:         "sangil's dev blog",
-					Favicon:      "",
-					Created:      time.Now(),
-					LastModified: time.Now(),
+					Id:          1,
+					Host:        "realsangil.github.io",
+					Schema:      "https",
+					Description: "sangil's dev blog",
+					Favicon:     "",
+					CreatedAt:   time.Now(),
+					ModifiedAt:  time.Now(),
 				}
 				mockContext.On("Language").Return(lang)
 
@@ -264,13 +264,13 @@ func TestWebServiceHandlerImpl_DeleteWebServiceById(t *testing.T) {
 			name: "pass",
 			mockFunc: func(mockContext *mocks2.Context, mockWebServiceService *mocks.WebServiceService) {
 				webService := &models.WebService{
-					Id:           1,
-					Host:         "realsangil.github.io",
-					HttpSchema:   "https",
-					Desc:         "sangil's dev blog",
-					Favicon:      "",
-					Created:      time.Now(),
-					LastModified: time.Now(),
+					Id:          1,
+					Host:        "realsangil.github.io",
+					Schema:      "https",
+					Description: "sangil's dev blog",
+					Favicon:     "",
+					CreatedAt:   time.Now(),
+					ModifiedAt:  time.Now(),
 				}
 				mockContext.On("Language").Return(lang)
 
@@ -327,18 +327,18 @@ func TestWebServiceHandlerImpl_UpdateWebServiceById(t *testing.T) {
 
 	webServiceWithId := &models.WebService{Id: 1}
 	webService := &models.WebService{
-		Id:           1,
-		Host:         "realsangil.github.io",
-		HttpSchema:   "https",
-		Desc:         "sangil's dev blog",
-		Favicon:      "",
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		Id:          1,
+		Host:        "realsangil.github.io",
+		Schema:      "https",
+		Description: "sangil's dev blog",
+		Favicon:     "",
+		CreatedAt:   time.Now(),
+		ModifiedAt:  time.Now(),
 	}
 	webServiceRequest := models.WebServiceRequest{
-		Host:    "https://www.lalaworks.com",
-		Desc:    "lalaworks website",
-		Favicon: "",
+		Host:        "https://www.lalaworks.com",
+		Description: "lalaworks website",
+		Favicon:     "",
 	}
 
 	tests := []struct {
@@ -426,13 +426,13 @@ func TestWebServiceHandlerImpl_GetWebServiceList(t *testing.T) {
 		TotalCount:  1,
 		Items: &[]*models.WebService{
 			{
-				Id:           1,
-				Host:         "realsangil.github.io",
-				HttpSchema:   "https",
-				Desc:         "sangil's dev blog",
-				Favicon:      "",
-				Created:      time.Now(),
-				LastModified: time.Now(),
+				Id:          1,
+				Host:        "realsangil.github.io",
+				Schema:      "https",
+				Description: "sangil's dev blog",
+				Favicon:     "",
+				CreatedAt:   time.Now(),
+				ModifiedAt:  time.Now(),
 			},
 		},
 	}

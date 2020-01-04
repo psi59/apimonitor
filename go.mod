@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/uuid v1.1.1
+	github.com/imroc/req v0.2.4
 	github.com/jinzhu/gorm v1.9.10
 	github.com/json-iterator/go v1.1.7
 	github.com/labstack/echo v3.3.10+incompatible // indirect

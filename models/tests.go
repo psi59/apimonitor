@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
 	"github.com/realsangil/apimonitor/pkg/rsdb"
@@ -14,57 +15,65 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsjson"
 	"github.com/realsangil/apimonitor/pkg/rslog"
 	"github.com/realsangil/apimonitor/pkg/rsmodels"
+	"github.com/realsangil/apimonitor/pkg/rsstr"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
 type Test struct {
 	rsmodels.DefaultValidateChecker
-	Id           int64               `json:"id"`
-	WebServiceId int64               `json:"-"`
+	Id           string              `json:"id"`
+	Name         string              `json:"name"`
+	WebServiceId string              `json:"-"`
+	WebService   WebService          `json:"webService,omitempty" gorm:"PRELOAD:true"`
 	Path         rshttp.EndpointPath `json:"path"`
-	HttpMethod   rshttp.Method       `json:"http_method"`
-	ContentType  rshttp.ContentType  `json:"content_type"`
-	Desc         string              `json:"desc" gorm:"Type:TEXT"`
-	RequestData  rsjson.MapJson      `json:"request_data" gorm:"Type:JSON"`
-	Header       rshttp.Header       `json:"header" gorm:"Type:JSON"`
-	QueryParam   rshttp.Query        `json:"query_param" gorm:"Type:JSON"`
+	Method       rshttp.Method       `json:"method"`
+	ContentType  rshttp.ContentType  `json:"contentType"`
+	Description  string              `json:"description" gorm:"Type:TEXT"`
+	Parameters   Parameters          `json:"parameters" gorm:"Type:JSON"`
+	Schedule     TestSchedule        `json:"schedule" gorm:"Column:schedule;Type:VARCHAR(5)"`
 	Timeout      rshttp.Timeout      `json:"timeout"`
 	Assertion    AssertionV1         `json:"assertion" gorm:"Type:JSON"`
-	Created      time.Time           `json:"created"`
-	LastModified time.Time           `json:"last_modified"`
+	CreatedAt    time.Time           `json:"createdAt"`
+	ModifiedAt   time.Time           `json:"modifiedAt"`
 }
 
 func (test *Test) UpdateFromRequest(request TestRequest) error {
+	test.Name = request.Name
 	test.Path = request.Path
-	test.HttpMethod = request.HttpMethod
+	test.Method = request.Method
 	test.ContentType = request.ContentType
-	test.Desc = request.Desc
-	test.RequestData = request.RequestData
-	test.Header = request.Header
-	test.QueryParam = request.QueryParam
-	test.LastModified = time.Now()
+	test.Description = request.Description
+	test.Schedule = request.Schedule
+	test.Timeout = rshttp.Timeout(request.Timeout)
+	test.ModifiedAt = time.Now()
 	return test.Validate()
 }
 
 func (test *Test) Validate() error {
 	if rsvalid.IsZero(
+		test.Id,
+		test.Name,
 		test.WebServiceId,
 		test.Path,
-		test.HttpMethod,
+		test.Method,
 		test.ContentType,
-		test.Created,
-		test.LastModified,
+		test.Schedule,
+		test.CreatedAt,
+		test.ModifiedAt,
 	) {
 		return errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint")
 	}
 	if err := test.Path.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := test.HttpMethod.Validate(); err != nil {
+	if err := test.Method.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
 	if err := test.ContentType.Validate(); err != nil {
-		return err
+		return errors.WithStack(err)
+	}
+	if err := test.Schedule.Validate(); err != nil {
+		return errors.WithStack(err)
 	}
 	test.SetValidated()
 	return nil
@@ -91,7 +100,7 @@ func (test Test) ToHttpRequest(webService *WebService) (*rshttp.Request, error) 
 	}
 
 	rawUrl := url.URL{
-		Scheme: webService.HttpSchema,
+		Scheme: webService.Schema,
 		Host:   webService.Host,
 		Path:   test.Path.String(),
 	}
@@ -99,9 +108,6 @@ func (test Test) ToHttpRequest(webService *WebService) (*rshttp.Request, error) 
 
 	request := rshttp.Request{
 		RawUrl:  rawUrl.String(),
-		Header:  test.Header,
-		Query:   test.QueryParam,
-		Body:    test.RequestData,
 		Timeout: test.Timeout,
 	}
 
@@ -113,8 +119,9 @@ func NewTest(webService *WebService, request TestRequest) (*Test, error) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Endpoint")
 	}
 	test := &Test{
+		Id:           rsstr.NewUUID(),
 		WebServiceId: webService.Id,
-		Created:      time.Now(),
+		CreatedAt:    time.Now(),
 	}
 	if err := test.UpdateFromRequest(request); err != nil {
 		return nil, errors.WithStack(err)
@@ -123,19 +130,22 @@ func NewTest(webService *WebService, request TestRequest) (*Test, error) {
 }
 
 type TestRequest struct {
+	Id          string              `json:"-"`
+	Name        string              `json:"name"`
 	Path        rshttp.EndpointPath `json:"path"`
-	HttpMethod  rshttp.Method       `json:"http_method"`
-	ContentType rshttp.ContentType  `json:"content_type"`
-	Desc        string              `json:"desc"`
-	RequestData rsjson.MapJson      `json:"request_data" gorm:"Type:JSON"`
-	Header      rshttp.Header       `json:"header" gorm:"Type:JSON"`
-	QueryParam  rshttp.Query        `json:"query_param" gorm:"Type:JSON"`
+	Method      rshttp.Method       `json:"method"`
+	ContentType rshttp.ContentType  `json:"contentType"`
+	Description string              `json:"description"`
+	Parameters  Parameters          `json:"parameters"`
+	Schedule    TestSchedule        `json:"schedule"`
+	Assertion   AssertionV1         `json:"assertion"`
+	Timeout     int                 `json:"timeout"`
 }
 
 func (request TestRequest) Validate() error {
 	if rsvalid.IsZero(
 		request.Path,
-		request.HttpMethod,
+		request.Method,
 		request.ContentType,
 	) {
 		return errors.Wrap(rserrors.ErrInvalidParameter, "EndpointRequest")
@@ -143,7 +153,7 @@ func (request TestRequest) Validate() error {
 	if err := request.Path.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := request.HttpMethod.Validate(); err != nil {
+	if err := request.Method.Validate(); err != nil {
 		return errors.WithStack(err)
 	}
 	if err := request.ContentType.Validate(); err != nil {
@@ -153,36 +163,36 @@ func (request TestRequest) Validate() error {
 }
 
 type TestListItem struct {
-	Id           int64               `json:"id"`
-	WebServiceId int64               `json:"-"`
-	WebService   *WebService         `json:"web_service" gorm:"foreignkey:WebServiceId"`
+	Id           string              `json:"id"`
+	WebServiceId string              `json:"webServiceId"  gorm:"foreignkey:WebServiceId"`
+	WebService   *WebService         `json:"webService"`
 	Path         rshttp.EndpointPath `json:"path"`
-	HttpMethod   rshttp.Method       `json:"http_method"`
-	Desc         string              `json:"desc"`
+	Method       rshttp.Method       `json:"method"`
+	Description  string              `json:"description"`
 	Created      time.Time           `json:"created"`
-	LastModified time.Time           `json:"last_modified"`
+	LastModified time.Time           `json:"lastModified"`
 }
 
 func (testListItem TestListItem) MarshalJSON() ([]byte, error) {
 	endpointUrl := &url.URL{
-		Scheme: testListItem.WebService.HttpSchema,
+		Scheme: testListItem.WebService.Schema,
 		Host:   testListItem.WebService.Host,
 		Path:   testListItem.Path.String(),
 	}
 	return json.Marshal(struct {
-		Id           int64               `json:"id"`
+		Id           string              `json:"id"`
 		Path         rshttp.EndpointPath `json:"path"`
 		Url          string              `json:"url"`
-		HttpMethod   rshttp.Method       `json:"http_method"`
+		Method       rshttp.Method       `json:"method"`
 		Desc         string              `json:"desc"`
 		Created      time.Time           `json:"created"`
-		LastModified time.Time           `json:"last_modified"`
+		LastModified time.Time           `json:"lastModified"`
 	}{
 		Id:           testListItem.Id,
 		Path:         testListItem.Path,
 		Url:          endpointUrl.String(),
-		HttpMethod:   testListItem.HttpMethod,
-		Desc:         testListItem.Desc,
+		Method:       testListItem.Method,
+		Desc:         testListItem.Description,
 		Created:      testListItem.Created,
 		LastModified: testListItem.LastModified,
 	})
@@ -195,7 +205,7 @@ func (testListItem TestListItem) TableName() string {
 type TestListRequest struct {
 	Page         int
 	NumItem      int
-	WebServiceId int64
+	WebServiceId string
 }
 
 type AssertionV1 struct {
@@ -212,4 +222,79 @@ func (assertion AssertionV1) Value() (driver.Value, error) {
 
 func (assertion AssertionV1) Assert(res rshttp.Response) bool {
 	return !rsvalid.IsZero(res) && assertion.StatusCode == res.GetStatusCode()
+}
+
+const (
+	ScheduleOneMinute     TestSchedule = "1m"
+	ScheduleFiveMinute    TestSchedule = "5m"
+	ScheduleFifteenMinute TestSchedule = "15m"
+	ScheduleThirtyMinute  TestSchedule = "30m"
+	ScheduleHourly        TestSchedule = "1h"
+	ScheduleDaily         TestSchedule = "1d"
+)
+
+type TestSchedule string
+
+func (schedule *TestSchedule) Validate() error {
+	switch *schedule {
+	case ScheduleOneMinute, ScheduleFiveMinute, ScheduleFifteenMinute, ScheduleThirtyMinute, ScheduleHourly, ScheduleDaily:
+		return nil
+	default:
+		return rserrors.Error("invalid schedule")
+	}
+}
+
+func (schedule *TestSchedule) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := jsoniter.Unmarshal(data, &str); err != nil {
+		return errors.WithStack(err)
+	}
+	s := TestSchedule(str)
+	if str == "" {
+		s = ScheduleDaily
+	}
+	if err := s.Validate(); err != nil {
+		return errors.WithStack(err)
+	}
+	*schedule = s
+	return schedule.Validate()
+}
+
+func (schedule TestSchedule) GetDuration() time.Duration {
+	// return 3 * time.Second
+	switch schedule {
+	case ScheduleOneMinute:
+		return 1 * time.Minute
+	case ScheduleFiveMinute:
+		return 5 * time.Minute
+	case ScheduleFifteenMinute:
+		return 15 * time.Minute
+	case ScheduleThirtyMinute:
+		return 30 * time.Minute
+	case ScheduleHourly:
+		return time.Hour
+	case ScheduleDaily:
+		return 24 * time.Hour
+	default:
+		return 0
+	}
+}
+
+func (schedule TestSchedule) GetTicker() *time.Ticker {
+	return time.NewTicker(schedule.GetDuration())
+}
+
+type Parameters struct {
+	Auth   map[string]interface{} `json:"auth"`
+	Header map[string][]string    `json:"header"`
+	Query  map[string][]string    `json:"query"`
+	Body   map[string]interface{} `json:"body"`
+}
+
+func (parameters *Parameters) Scan(src interface{}) error {
+	return rsjson.ScanFromDB(src, parameters)
+}
+
+func (parameters Parameters) Value() (driver.Value, error) {
+	return jsoniter.Marshal(parameters)
 }

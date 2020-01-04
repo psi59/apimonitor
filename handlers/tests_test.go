@@ -39,16 +39,16 @@ func TestTestHandlerImpl_CreateTest(t *testing.T) {
 		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Id:                     1,
 		Host:                   "realsangil.github.io",
-		HttpSchema:             "https",
-		Desc:                   "sangil's dev blog",
+		Schema:                 "https",
+		Description:            "sangil's dev blog",
 		Favicon:                "",
-		Created:                time.Now(),
-		LastModified:           time.Now(),
+		CreatedAt:              time.Now(),
+		ModifiedAt:             time.Now(),
 	}
 
 	request := models.TestRequest{
 		Path:        "/path/to/uri",
-		HttpMethod:  rshttp.MethodGet,
+		Method:      rshttp.MethodGet,
 		ContentType: rshttp.MIMEApplicationJSON,
 		RequestData: nil,
 		Header:      nil,
@@ -59,13 +59,13 @@ func TestTestHandlerImpl_CreateTest(t *testing.T) {
 		Id:           1,
 		WebServiceId: 1,
 		Path:         "/path/to/uri",
-		HttpMethod:   rshttp.MethodGet,
+		Method:       rshttp.MethodGet,
 		ContentType:  rshttp.MIMEApplicationJSON,
 		RequestData:  nil,
 		Header:       nil,
 		QueryParam:   nil,
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		CreatedAt:    time.Now(),
+		ModifiedAt:   time.Now(),
 	}
 
 	tests := []struct {
@@ -190,13 +190,13 @@ func TestTestHandlerImpl_GetTest(t *testing.T) {
 		Id:           1,
 		WebServiceId: 1,
 		Path:         "/path/to/uri",
-		HttpMethod:   rshttp.MethodGet,
+		Method:       rshttp.MethodGet,
 		ContentType:  rshttp.MIMEApplicationJSON,
 		RequestData:  nil,
 		Header:       nil,
 		QueryParam:   nil,
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		CreatedAt:    time.Now(),
+		ModifiedAt:   time.Now(),
 	}
 
 	tests := []struct {

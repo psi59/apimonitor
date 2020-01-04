@@ -12,11 +12,14 @@ import (
 	"github.com/realsangil/apimonitor/repositories"
 )
 
+var _ TestService = &TestServiceImpl{}
+
 type TestService interface {
 	CreateTest(webService *models.WebService, request models.TestRequest) (*models.Test, *amerr.ErrorWithLanguage)
 	GetTestById(endpoint *models.Test) *amerr.ErrorWithLanguage
 	DeleteTestById(endpoint *models.Test) *amerr.ErrorWithLanguage
 	GetTestList(request models.TestListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
+	UpdateTestById(test *models.Test, request models.TestRequest) *amerr.ErrorWithLanguage
 }
 
 type TestServiceImpl struct {
@@ -120,6 +123,33 @@ func (service *TestServiceImpl) GetTestList(request models.TestListRequest) (*rs
 		TotalCount:  totalCount,
 		Items:       items,
 	}, nil
+}
+
+func (service *TestServiceImpl) UpdateTestById(test *models.Test, request models.TestRequest) *amerr.ErrorWithLanguage {
+	if err := service.testRepository.GetById(rsdb.GetConnection(), test); err != nil {
+		switch err {
+		case rsdb.ErrRecordNotFound:
+			return amerr.GetErrorsFromCode(amerr.ErrTestNotFound)
+		default:
+			rslog.Error(err)
+			return amerr.GetErrInternalServer()
+		}
+	}
+	_ = test.UpdateFromRequest(request)
+
+	if err := service.testRepository.Save(rsdb.GetConnection(), test); err != nil {
+		switch err {
+		case rsdb.ErrRecordNotFound:
+			return amerr.GetErrorsFromCode(amerr.ErrTestNotFound)
+		case rsdb.ErrInvalidData:
+			return amerr.GetErrorsFromCode(amerr.ErrBadRequest)
+		default:
+			rslog.Error(err)
+			return amerr.GetErrInternalServer()
+		}
+	}
+
+	return nil
 }
 
 func NewTestService(testRepository repositories.TestRepository) (TestService, error) {

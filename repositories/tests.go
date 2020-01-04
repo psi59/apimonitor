@@ -5,6 +5,7 @@ import (
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
@@ -16,6 +17,11 @@ type TestRepository interface {
 
 type TestRepositoryImpl struct {
 	rsdb.Repository
+}
+
+func (repository *TestRepositoryImpl) GetById(conn rsdb.Connection, test rsmodels.ValidatedObject) error {
+	err := conn.Conn().Preload("WebService").First(test).Error
+	return rsdb.HandleSQLError(err)
 }
 
 func (repository *TestRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Test) error {

@@ -72,7 +72,7 @@ func TestTestServiceImpl_CreateTest(t *testing.T) {
 	webService := &models.WebService{Id: 1}
 	request := models.TestRequest{
 		Path:        "/users",
-		HttpMethod:  rshttp.MethodPost,
+		Method:      rshttp.MethodPost,
 		ContentType: rshttp.MIMEApplicationJSON,
 		RequestData: rsjson.MapJson{
 			"name":   "sangil",
@@ -86,13 +86,13 @@ func TestTestServiceImpl_CreateTest(t *testing.T) {
 		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		WebServiceId:           1,
 		Path:                   request.Path,
-		HttpMethod:             request.HttpMethod,
+		Method:                 request.Method,
 		ContentType:            request.ContentType,
 		RequestData:            request.RequestData,
 		Header:                 request.Header,
 		QueryParam:             request.QueryParam,
-		Created:                time.Now(),
-		LastModified:           time.Now(),
+		CreatedAt:              time.Now(),
+		ModifiedAt:             time.Now(),
 	}
 
 	test := &models.Test{
@@ -100,13 +100,13 @@ func TestTestServiceImpl_CreateTest(t *testing.T) {
 		Id:                     1,
 		WebServiceId:           1,
 		Path:                   request.Path,
-		HttpMethod:             request.HttpMethod,
+		Method:                 request.Method,
 		ContentType:            request.ContentType,
 		RequestData:            request.RequestData,
 		Header:                 request.Header,
 		QueryParam:             request.QueryParam,
-		Created:                time.Now(),
-		LastModified:           time.Now(),
+		CreatedAt:              time.Now(),
+		ModifiedAt:             time.Now(),
 	}
 
 	type args struct {
@@ -247,13 +247,13 @@ func TestTestServiceImpl_GetTestById(t *testing.T) {
 		Id:           1,
 		WebServiceId: 1,
 		Path:         "/path/to/uri",
-		HttpMethod:   rshttp.MethodGet,
+		Method:       rshttp.MethodGet,
 		ContentType:  rshttp.MIMEApplicationJSON,
 		RequestData:  nil,
 		Header:       nil,
 		QueryParam:   nil,
-		Created:      time.Now(),
-		LastModified: time.Now(),
+		CreatedAt:    time.Now(),
+		ModifiedAt:   time.Now(),
 	}
 
 	type args struct {

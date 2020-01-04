@@ -14,11 +14,12 @@ import (
 type TestResult struct {
 	rsmodels.DefaultValidateChecker
 	Id           string    `json:"id" gorm:"Size:36"`
-	TestId       int64     `json:"test_id" gorm:"NOT NULL"`
-	IsSuccess    bool      `json:"is_success"`
-	StatusCode   int       `json:"status_code"`
-	ResponseTime int64     `json:"response_time"`
-	TestedAt     time.Time `json:"tested_at"`
+	TestId       string    `json:"testId" gorm:"NOT NULL"`
+	IsSuccess    bool      `json:"isSuccess"`
+	StatusCode   int       `json:"statusCode"`
+	Response     string    `json:"response"`
+	ResponseTime int64     `json:"responseTime"`
+	TestedAt     time.Time `json:"testedAt"`
 }
 
 func (result TestResult) Validate() error {
@@ -34,11 +35,11 @@ func (result TestResult) TableName() string {
 }
 
 type TestResultListRequest struct {
-	Page          int       `query:"page"`
-	NumItem       int       `query:"num_item"`
-	IsSuccess     IsSuccess `query:"is_success"`
-	StartTestedAt time.Time `query:"start_tested_at"`
-	EndTestedAt   time.Time `query:"end_tested_at"`
+	Page          int       `json:"page"`
+	NumItem       int       `json:"numItem"`
+	IsSuccess     IsSuccess `json:"isSuccess"`
+	StartTestedAt time.Time `json:"startTestedAt"`
+	EndTestedAt   time.Time `json:"endTestedAt"`
 }
 
 func (request *TestResultListRequest) SetZeroToDefault() {
@@ -46,7 +47,7 @@ func (request *TestResultListRequest) SetZeroToDefault() {
 		request.Page = 1
 	}
 	if request.NumItem == 0 {
-		request.NumItem = 200
+		request.NumItem = 20
 	}
 }
 

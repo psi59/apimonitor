@@ -99,13 +99,13 @@ func TestTest_Validate(t *testing.T) {
 				Id:                     tt.fields.Id,
 				WebServiceId:           tt.fields.WebServiceId,
 				Path:                   tt.fields.Path,
-				HttpMethod:             tt.fields.HttpMethod,
+				Method:                 tt.fields.HttpMethod,
 				ContentType:            tt.fields.ContentType,
 				RequestData:            tt.fields.RequestData,
 				Header:                 tt.fields.Header,
 				QueryParam:             tt.fields.QueryParam,
-				Created:                tt.fields.Created,
-				LastModified:           tt.fields.LastModified,
+				CreatedAt:              tt.fields.Created,
+				ModifiedAt:             tt.fields.LastModified,
 			}
 			if err := test.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -140,7 +140,7 @@ func TestTest_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: TestRequest{
 					Path:        "/path/to/file",
-					HttpMethod:  rshttp.MethodGet,
+					Method:      rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
@@ -154,7 +154,7 @@ func TestTest_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: TestRequest{
 					Path:        "/path/to/file",
-					HttpMethod:  rshttp.MethodGet,
+					Method:      rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
@@ -168,7 +168,7 @@ func TestTest_UpdateFromRequest(t *testing.T) {
 			args: args{
 				request: TestRequest{
 					Path:        "/???/asdas",
-					HttpMethod:  rshttp.MethodGet,
+					Method:      rshttp.MethodGet,
 					ContentType: rshttp.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
@@ -195,8 +195,8 @@ func TestTest_UpdateFromRequest(t *testing.T) {
 			name: "invalid request",
 			args: args{
 				request: TestRequest{
-					Path:       "/path/to/file",
-					HttpMethod: rshttp.MethodGet,
+					Path:   "/path/to/file",
+					Method: rshttp.MethodGet,
 					// ContentType: http.MIMEApplicationJSON,
 					RequestData: mockRequestData,
 					Header:      mockHeader,
@@ -210,7 +210,7 @@ func TestTest_UpdateFromRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test := &Test{
 				WebServiceId: 1,
-				Created:      time.Now(),
+				CreatedAt:    time.Now(),
 			}
 			if err := test.UpdateFromRequest(tt.args.request); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateFromRequest() error = %v, wantErr %v", err, tt.wantErr)
@@ -228,7 +228,7 @@ func TestNewTest(t *testing.T) {
 
 	request := TestRequest{
 		Path:        "/path/to/file",
-		HttpMethod:  rshttp.MethodGet,
+		Method:      rshttp.MethodGet,
 		ContentType: rshttp.MIMEApplicationJSON,
 	}
 
@@ -252,13 +252,13 @@ func TestNewTest(t *testing.T) {
 				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 				WebServiceId:           1,
 				Path:                   request.Path,
-				HttpMethod:             request.HttpMethod,
+				Method:                 request.Method,
 				ContentType:            request.ContentType,
 				RequestData:            request.RequestData,
 				Header:                 request.Header,
 				QueryParam:             request.QueryParam,
-				Created:                time.Now(),
-				LastModified:           time.Now(),
+				CreatedAt:              time.Now(),
+				ModifiedAt:             time.Now(),
 			},
 			wantErr: false,
 		},
@@ -383,7 +383,7 @@ func TestTestRequest_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			e := TestRequest{
 				Path:        tt.fields.Path,
-				HttpMethod:  tt.fields.HttpMethod,
+				Method:      tt.fields.HttpMethod,
 				ContentType: tt.fields.ContentType,
 				RequestData: tt.fields.RequestData,
 				Header:      tt.fields.Header,

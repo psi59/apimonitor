@@ -77,6 +77,7 @@ func (timeout Timeout) GetDuration() time.Duration {
 }
 
 type Request struct {
+	Method      string
 	RawUrl      string
 	Header      Header
 	Query       Query
