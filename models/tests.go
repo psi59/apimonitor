@@ -43,6 +43,7 @@ func (test *Test) UpdateFromRequest(request TestRequest) error {
 	test.Method = request.Method
 	test.ContentType = request.ContentType
 	test.Description = request.Description
+	test.Parameters = request.Parameters
 	test.Schedule = request.Schedule
 	test.Timeout = rshttp.Timeout(request.Timeout)
 	test.ModifiedAt = time.Now()
@@ -286,8 +287,8 @@ func (schedule TestSchedule) GetTicker() *time.Ticker {
 
 type Parameters struct {
 	Auth   map[string]interface{} `json:"auth"`
-	Header map[string][]string    `json:"header"`
-	Query  map[string][]string    `json:"query"`
+	Header map[string]string      `json:"header"`
+	Query  map[string]string      `json:"query"`
 	Body   map[string]interface{} `json:"body"`
 }
 
