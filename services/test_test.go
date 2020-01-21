@@ -141,7 +141,7 @@ func TestTestServiceImpl_CreateTest(t *testing.T) {
 		{
 			name: "invalid argument",
 			args: args{
-				// webService: webService,
+				// test: test,
 				request: request,
 			},
 			mockFunc: func(mockConn *mocks2.Connection, mockTestRepository *mocks.TestRepository) {},

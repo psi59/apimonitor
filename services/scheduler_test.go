@@ -90,7 +90,7 @@ func Test_webServiceScheduler_Run(t *testing.T) {
 	tests := []struct {
 		name     string
 		fields   fields
-		testFunc func(webServiceScheduler *webServiceScheduler) func()
+		testFunc func(webServiceScheduler *testScheduler) func()
 		wantErr  error
 	}{
 		{
@@ -100,7 +100,7 @@ func Test_webServiceScheduler_Run(t *testing.T) {
 				closeChan:  make(chan bool, 1),
 				errorChan:  make(chan error, 1),
 			},
-			testFunc: func(webServiceScheduler *webServiceScheduler) func() {
+			testFunc: func(webServiceScheduler *testScheduler) func() {
 				return func() {
 					_ = webServiceScheduler.Close()
 				}
@@ -110,9 +110,9 @@ func Test_webServiceScheduler_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			schedule := &webServiceScheduler{
-				webService: tt.fields.webService,
-				closeChan:  tt.fields.closeChan,
+			schedule := &testScheduler{
+				test:      tt.fields.webService,
+				closeChan: tt.fields.closeChan,
 			}
 			time.AfterFunc(3*time.Second, tt.testFunc(schedule))
 			err := schedule.Run()
@@ -125,7 +125,7 @@ func Test_webServiceScheduleManager_Run(t *testing.T) {
 	testutils.SetLogConfig()
 	testutils.MonkeyAll()
 	monkey.Patch(rshttp.Do, func(request *rshttp.Request) (rshttp.Response, error) {
-		return &rshttp.HttpResponse{
+		return &rshttp.Response{
 			StatusCode:   http.StatusOK,
 			ResponseTime: 10,
 			Body:         nil,
@@ -135,7 +135,7 @@ func Test_webServiceScheduleManager_Run(t *testing.T) {
 	resultChan := make(chan *models.TestResult, 1)
 
 	type fields struct {
-		webServiceSchedulers map[interface{}]WebServiceScheduler
+		webServiceSchedulers map[interface{}]Scheduler
 		resultChan           chan *models.TestResult
 	}
 	tests := []struct {
@@ -146,9 +146,9 @@ func Test_webServiceScheduleManager_Run(t *testing.T) {
 		{
 			name: "pass",
 			fields: fields{
-				webServiceSchedulers: map[interface{}]WebServiceScheduler{
-					1: &webServiceScheduler{
-						webService: &models.WebService{
+				webServiceSchedulers: map[interface{}]Scheduler{
+					1: &testScheduler{
+						test: &models.WebService{
 							Id:       1,
 							Schedule: models.ScheduleOneMinute,
 							Tests: []models.Test{
@@ -180,10 +180,10 @@ func Test_webServiceScheduleManager_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			manager := &webServiceScheduleManager{
-				webServiceSchedulers: tt.fields.webServiceSchedulers,
-				resultChan:           tt.fields.resultChan,
-				closeChan:            make(chan bool, 1),
+			manager := &TestScheduleManager{
+				testSchedulers: tt.fields.webServiceSchedulers,
+				resultChan:     tt.fields.resultChan,
+				closeChan:      make(chan bool, 1),
 			}
 			time.AfterFunc(1*time.Second, func() {
 				manager.Close()

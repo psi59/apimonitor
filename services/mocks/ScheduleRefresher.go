@@ -9,8 +9,8 @@ type ScheduleRefresher struct {
 	mock.Mock
 }
 
-// Refresh provides a mock function with given fields:
-func (_m *ScheduleRefresher) Refresh() error {
+// Init provides a mock function with given fields:
+func (_m *ScheduleRefresher) Init() error {
 	ret := _m.Called()
 
 	var r0 error

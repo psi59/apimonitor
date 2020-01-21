@@ -24,7 +24,7 @@ type Test struct {
 	Id           string              `json:"id"`
 	Name         string              `json:"name"`
 	WebServiceId string              `json:"-"`
-	WebService   WebService          `json:"webService,omitempty" gorm:"PRELOAD:true"`
+	WebService   *WebService         `json:"webService,omitempty" gorm:"PRELOAD:true"`
 	Path         rshttp.EndpointPath `json:"path"`
 	Method       rshttp.Method       `json:"method"`
 	ContentType  rshttp.ContentType  `json:"contentType"`
@@ -80,8 +80,8 @@ func (test *Test) Validate() error {
 	return nil
 }
 
-func (test Test) Execute(webService *WebService) (rshttp.Response, error) {
-	request, err := test.ToHttpRequest(webService)
+func (test Test) Execute() (*rshttp.Response, error) {
+	request, err := test.ToHttpRequest(test.WebService)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -108,6 +108,7 @@ func (test Test) ToHttpRequest(webService *WebService) (*rshttp.Request, error) 
 	rslog.Debugf("rawUrl='%s'", rawUrl.String())
 
 	request := rshttp.Request{
+		Method:  test.Method.String(),
 		RawUrl:  rawUrl.String(),
 		Timeout: test.Timeout,
 	}
@@ -221,8 +222,8 @@ func (assertion AssertionV1) Value() (driver.Value, error) {
 	return rsdb.JsonValue(assertion)
 }
 
-func (assertion AssertionV1) Assert(res rshttp.Response) bool {
-	return !rsvalid.IsZero(res) && assertion.StatusCode == res.GetStatusCode()
+func (assertion AssertionV1) Assert(res *rshttp.Response) bool {
+	return !rsvalid.IsZero(res) && assertion.StatusCode == res.StatusCode
 }
 
 const (
@@ -262,23 +263,23 @@ func (schedule *TestSchedule) UnmarshalJSON(data []byte) error {
 }
 
 func (schedule TestSchedule) GetDuration() time.Duration {
-	// return 3 * time.Second
-	switch schedule {
-	case ScheduleOneMinute:
-		return 1 * time.Minute
-	case ScheduleFiveMinute:
-		return 5 * time.Minute
-	case ScheduleFifteenMinute:
-		return 15 * time.Minute
-	case ScheduleThirtyMinute:
-		return 30 * time.Minute
-	case ScheduleHourly:
-		return time.Hour
-	case ScheduleDaily:
-		return 24 * time.Hour
-	default:
-		return 0
-	}
+	return 3 * time.Second
+	//switch schedule {
+	//case ScheduleOneMinute:
+	//	return 1 * time.Minute
+	//case ScheduleFiveMinute:
+	//	return 5 * time.Minute
+	//case ScheduleFifteenMinute:
+	//	return 15 * time.Minute
+	//case ScheduleThirtyMinute:
+	//	return 30 * time.Minute
+	//case ScheduleHourly:
+	//	return time.Hour
+	//case ScheduleDaily:
+	//	return 24 * time.Hour
+	//default:
+	//	return 0
+	//}
 }
 
 func (schedule TestSchedule) GetTicker() *time.Ticker {

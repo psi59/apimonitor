@@ -23,8 +23,8 @@ func (_m *WebServiceScheduleManager) Close() error {
 	return r0
 }
 
-// Refresh provides a mock function with given fields:
-func (_m *WebServiceScheduleManager) Refresh() error {
+// Init provides a mock function with given fields:
+func (_m *WebServiceScheduleManager) Init() error {
 	ret := _m.Called()
 
 	var r0 error

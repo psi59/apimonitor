@@ -340,14 +340,14 @@ func TestWebServiceServiceImpl_DeleteWebServiceById(t *testing.T) {
 		{
 			name: "invalid parameter",
 			args: args{
-				// webService: webServiceWithId,
+				// test: webServiceWithId,
 			},
 			mockFunc: func(mockTx *mocks2.Connection, mockWebServiceRepository *mocks.WebServiceRepository) {
 			},
 			wantErr: amerr.GetErrInternalServer(),
 		},
 		{
-			name: "[WebServiceService.GetWebServiceById] webService not found",
+			name: "[WebServiceService.GetWebServiceById] test not found",
 			args: args{
 
 				webService: webServiceWithId,
@@ -369,7 +369,7 @@ func TestWebServiceServiceImpl_DeleteWebServiceById(t *testing.T) {
 			wantErr: amerr.GetErrInternalServer(),
 		},
 		{
-			name: "[WebServiceRepository.DeleteById] webService not found",
+			name: "[WebServiceRepository.DeleteById] test not found",
 			args: args{
 				webService: webServiceWithId,
 			},
@@ -460,7 +460,7 @@ func TestWebServiceServiceImpl_UpdateWebServiceById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "[WebServiceService.GetWebServiceById] webService not found",
+			name: "[WebServiceService.GetWebServiceById] test not found",
 			args: args{
 
 				webService: webServiceWithId,
@@ -523,7 +523,7 @@ func TestWebServiceServiceImpl_UpdateWebServiceById(t *testing.T) {
 		{
 			name: "invalid parameter",
 			args: args{
-				// webService: webServiceWithId,
+				// test: webServiceWithId,
 				request: request,
 			},
 			mockFunc: func(mockTx *mocks2.Connection, mockWebServiceRepository *mocks.WebServiceRepository) {

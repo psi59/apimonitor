@@ -101,28 +101,10 @@ func (request Request) GetUrl() string {
 	return parsedUrl.String()
 }
 
-type Response interface {
-	GetStatusCode() int
-	GetResponseTime() int64
-	GetBody() interface{}
-}
-
-type HttpResponse struct {
+type Response struct {
 	StatusCode   int
 	ResponseTime int64
 	Body         interface{}
-}
-
-func (d HttpResponse) GetStatusCode() int {
-	return d.StatusCode
-}
-
-func (d HttpResponse) GetResponseTime() int64 {
-	return d.ResponseTime
-}
-
-func (d HttpResponse) GetBody() interface{} {
-	return d.Body
 }
 
 func convertInterfaceToString(i interface{}) string {

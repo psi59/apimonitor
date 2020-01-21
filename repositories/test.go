@@ -12,7 +12,7 @@ import (
 type TestRepository interface {
 	rsdb.Repository
 	GetByIdAndWebServiceId(conn rsdb.Connection, endpoint *models.Test) error
-	GetList(conn rsdb.Connection, items *[]*models.TestListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error)
+	GetList(conn rsdb.Connection, items interface{}, filter rsdb.ListFilter, orders rsdb.Orders) (int, error)
 }
 
 type TestRepositoryImpl struct {
@@ -34,7 +34,7 @@ func (repository *TestRepositoryImpl) GetByIdAndWebServiceId(conn rsdb.Connectio
 	return nil
 }
 
-func (repository *TestRepositoryImpl) GetList(conn rsdb.Connection, items *[]*models.TestListItem, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
+func (repository *TestRepositoryImpl) GetList(conn rsdb.Connection, items interface{}, filter rsdb.ListFilter, orders rsdb.Orders) (int, error) {
 	where := rsdb.NewEmptyQuery()
 	if v, exist := filter.Conditions["web_service_id"]; exist {
 		w, _ := rsdb.NewQuery("web_service_id=?", v)
@@ -51,7 +51,15 @@ func (repository *TestRepositoryImpl) GetList(conn rsdb.Connection, items *[]*mo
 		return 0, rsdb.HandleSQLError(err)
 	}
 
-	if err := query.Preload("WebService").Offset(filter.Offset()).Limit(filter.NumItem).Find(items).Error; err != nil {
+	if filter.Page > 0 {
+		query = query.Offset(filter.Offset())
+	}
+
+	if filter.NumItem > 0 {
+		query = query.Limit(filter.NumItem)
+	}
+
+	if err := query.Preload("WebService").Find(items).Error; err != nil {
 		return 0, rsdb.HandleSQLError(err)
 	}
 

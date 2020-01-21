@@ -13,13 +13,13 @@ import (
 
 type TestResult struct {
 	rsmodels.DefaultValidateChecker
-	Id           string    `json:"id" gorm:"Size:36"`
-	TestId       string    `json:"testId" gorm:"NOT NULL"`
-	IsSuccess    bool      `json:"isSuccess"`
-	StatusCode   int       `json:"statusCode"`
-	Response     string    `json:"response"`
-	ResponseTime int64     `json:"responseTime"`
-	TestedAt     time.Time `json:"testedAt"`
+	Id           string      `json:"id" gorm:"Size:36"`
+	TestId       string      `json:"testId" gorm:"NOT NULL"`
+	IsSuccess    bool        `json:"isSuccess"`
+	StatusCode   int         `json:"statusCode"`
+	Response     interface{} `json:"response" gorm:"Type:TEXT"`
+	ResponseTime int64       `json:"responseTime"`
+	TestedAt     time.Time   `json:"testedAt"`
 }
 
 func (result TestResult) Validate() error {

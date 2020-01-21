@@ -1,7 +1,11 @@
 package services
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
+	"github.com/realsangil/apimonitor/pkg/rsmodels"
+	"github.com/realsangil/apimonitor/pkg/rsstr"
 
 	"github.com/realsangil/apimonitor/models"
 	"github.com/realsangil/apimonitor/pkg/rsdb"
@@ -19,34 +23,34 @@ type ScheduleCloser interface {
 	Close() error
 }
 
-type ScheduleRefresher interface {
-	Refresh() error
+type ScheduleConstructor interface {
+	Init() error
 }
 
-type WebServiceScheduler interface {
+type Scheduler interface {
 	ScheduleRunner
 	ScheduleCloser
 }
 
-type WebServiceScheduleManager interface {
+type ScheduleManager interface {
 	ScheduleRunner
-	ScheduleRefresher
+	ScheduleConstructor
 	ScheduleCloser
 }
 
-type webServiceScheduleManager struct {
-	webServiceSchedulers map[interface{}]WebServiceScheduler
-	webServiceRepository repositories.WebServiceRepository
+type TestScheduleManager struct {
+	testSchedulers       map[string]Scheduler
+	testRepository       repositories.TestRepository
 	testResultRepository repositories.TestResultRepository
 	resultChan           chan *models.TestResult
 	closeChan            chan bool
 }
 
-func (manager *webServiceScheduleManager) Run() error {
+func (manager *TestScheduleManager) Run() error {
 	rslog.Debug("Running WebServiceManager...")
 	errChan := make(chan error, 100)
-	for _, s := range manager.webServiceSchedulers {
-		go func(s WebServiceScheduler, errChan chan<- error) {
+	for _, s := range manager.testSchedulers {
+		go func(s Scheduler, errChan chan<- error) {
 			if err := s.Run(); err != nil {
 				errChan <- err
 			}
@@ -63,20 +67,18 @@ func (manager *webServiceScheduleManager) Run() error {
 				errChan <- err
 			}
 		case <-manager.closeChan:
-			rslog.Debug("Closed webServiceScheduleManager")
+			rslog.Debug("Closed TestScheduleManager")
 			_ = manager.Close()
 			return nil
 		}
 	}
-
-	return nil
 }
 
-func (manager *webServiceScheduleManager) Refresh() error {
+func (manager *TestScheduleManager) Init() error {
 	if err := manager.Close(); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := manager.refreshWebServices(); err != nil {
+	if err := manager.initTests(); err != nil {
 		return errors.WithStack(err)
 	}
 	if err := manager.Run(); err != nil {
@@ -85,95 +87,101 @@ func (manager *webServiceScheduleManager) Refresh() error {
 	return nil
 }
 
-func (manager *webServiceScheduleManager) refreshWebServices() error {
-	rslog.Debug("Refreshing WebServiceScheduler...")
-	webServices, err := manager.webServiceRepository.GetAllWebServicesWithTests(rsdb.GetConnection())
+func (manager *TestScheduleManager) initTests() error {
+	rslog.Debug("Initialing Scheduler...")
+	tests := make([]*models.Test, 0)
+	filter := rsdb.ListFilter{
+		Page:       -1,
+		NumItem:    -1,
+		Conditions: nil,
+	}
+	totalCount, err := manager.testRepository.GetList(rsdb.GetConnection(), &tests, filter, nil)
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	rslog.Debugf("test total count='%d'", totalCount)
 
-	rslog.Debugf("webServices='%+v'", webServices)
-	for _, webService := range webServices {
-		webServiceScheduler, err := NewWebServiceScheduler(&webService, manager.resultChan)
+	rslog.Debugf("tests='%+v'", tests)
+	for _, test := range tests {
+		testScheduler, err := NewTestScheduler(test, manager.resultChan)
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		manager.webServiceSchedulers[webService.Id] = webServiceScheduler
+		manager.testSchedulers[test.Id] = testScheduler
 	}
-	rslog.Debugf("scheduler.webServices='%+v'", manager.webServiceSchedulers)
+	rslog.Debugf("scheduler.testServices='%+v'", manager.testSchedulers)
 
 	return nil
 }
 
-func (manager *webServiceScheduleManager) Close() error {
+func (manager *TestScheduleManager) Close() error {
 	rslog.Debug("Closing WebServiceManager...")
-	for _, s := range manager.webServiceSchedulers {
+	for _, s := range manager.testSchedulers {
 		_ = s.Close()
 	}
 	// manager.closeChan <- true
 	return nil
 }
 
-func NewWebServiceScheduleManager(webServiceRepository repositories.WebServiceRepository, testResultRepository repositories.TestResultRepository) (WebServiceScheduleManager, error) {
-	if rsvalid.IsZero(webServiceRepository, testResultRepository) {
-		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "WebServiceScheduler")
+func NewTestScheduleManager(testRepository repositories.TestRepository, testResultRepository repositories.TestResultRepository) (ScheduleManager, error) {
+	if rsvalid.IsZero(testRepository, testResultRepository) {
+		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Scheduler")
 	}
-	return &webServiceScheduleManager{
-		webServiceSchedulers: make(map[interface{}]WebServiceScheduler),
-		webServiceRepository: webServiceRepository,
+	return &TestScheduleManager{
+		testSchedulers:       make(map[string]Scheduler),
+		testRepository:       testRepository,
 		testResultRepository: testResultRepository,
 		resultChan:           make(chan *models.TestResult, 1000),
 	}, nil
 }
 
-type webServiceScheduler struct {
-	webService *models.WebService
+type testScheduler struct {
+	test       *models.Test
 	closeChan  chan bool
 	resultChan chan<- *models.TestResult
 }
 
-func (schedule *webServiceScheduler) Run() error {
-	// ticker := schedule.webService.Schedule.GetTicker()
-	// rslog.Debug("Running...")
-	// for {
-	// 	select {
-	// 	case <-ticker.C:
-	// 		for _, test := range schedule.webService.Tests {
-	// 			res, err := test.Execute(schedule.webService)
-	// 			if err != nil {
-	// 				return err
-	// 			}
-	// 			rslog.Debugf("executed test:: id='%v'", test.Id)
-	// 			schedule.resultChan <- &models.TestResult{
-	// 				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
-	// 				Id:                     rsstr.NewUUID(),
-	// 				TestId:                 test.Id,
-	// 				IsSuccess:              test.Assertion.Assert(res),
-	// 				StatusCode:             res.GetStatusCode(),
-	// 				ResponseTime:           res.GetResponseTime(),
-	// 				TestedAt:               time.Now(),
-	// 			}
-	// 		}
-	// 	case <-schedule.closeChan:
-	// 		rslog.Debugf("webService close:: \tid='%v'", schedule.webService.Id)
-	// 		return nil
-	// 	}
-	// }
-	return nil
+func (schedule *testScheduler) Run() error {
+	ticker := schedule.test.Schedule.GetTicker()
+	rslog.Debug("Running...")
+	for {
+		select {
+		case <-ticker.C:
+			test := schedule.test
+			res, err := test.Execute()
+			if err != nil {
+				return err
+			}
+			rslog.Debugf("executed test:: id='%v'", test.Id)
+			schedule.resultChan <- &models.TestResult{
+				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
+				Id:                     rsstr.NewUUID(),
+				TestId:                 test.Id,
+				IsSuccess:              test.Assertion.Assert(res),
+				StatusCode:             res.StatusCode,
+				Response:               res.Body,
+				ResponseTime:           res.ResponseTime,
+				TestedAt:               time.Now(),
+			}
+		case <-schedule.closeChan:
+			rslog.Debugf("test close:: \tid='%v'", schedule.test.Id)
+			return nil
+		}
+	}
 }
 
-func (schedule *webServiceScheduler) Close() error {
+func (schedule *testScheduler) Close() error {
 	schedule.closeChan <- true
 	close(schedule.closeChan)
 	return nil
 }
 
-func NewWebServiceScheduler(webService *models.WebService, resultChan chan<- *models.TestResult) (WebServiceScheduler, error) {
-	if rsvalid.IsZero(webService) {
+func NewTestScheduler(test *models.Test, resultChan chan<- *models.TestResult) (Scheduler, error) {
+	if rsvalid.IsZero(test) {
 		return nil, rserrors.ErrInvalidParameter
 	}
-	return &webServiceScheduler{
-		webService: webService,
+	return &testScheduler{
+		test:       test,
 		closeChan:  make(chan bool, 1),
 		resultChan: resultChan,
 	}, nil

@@ -11,7 +11,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
-func Do(request *Request) (Response, error) {
+func Do(request *Request) (*Response, error) {
 	if rsvalid.IsZero(request) {
 		return nil, errors.WithStack(rserrors.ErrInvalidParameter)
 	}
@@ -24,14 +24,14 @@ func Do(request *Request) (Response, error) {
 			return nil, err
 		}
 
-		return &HttpResponse{
+		return &Response{
 			StatusCode:   resp.Response().StatusCode,
 			ResponseTime: resp.Cost().Milliseconds(),
 			Body:         resp.String(),
 		}, nil
+	default:
+		return nil, rserrors.ErrUnexpected
 	}
-
-	panic("not implement")
 	// rawBody, _ := jsoniter.Marshal(request.Body)
 	// var requestBody io.Reader
 	// if !rsvalid.IsZero(rawBody) {
@@ -59,7 +59,7 @@ func Do(request *Request) (Response, error) {
 	// 	// 	return nil, errors.WithStack(err)
 	// 	// }
 	//
-	// 	return &HttpResponse{
+	// 	return &Response{
 	// 		StatusCode:   httpResponse.StatusCode,
 	// 		ResponseTime: endDuration.Milliseconds(),
 	// 		Body:         nil,
