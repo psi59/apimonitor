@@ -15,6 +15,10 @@ import (
 	"github.com/realsangil/apimonitor/repositories"
 )
 
+type ScheduleExecutor interface {
+	Execute() error
+}
+
 type ScheduleRunner interface {
 	Run() error
 }
@@ -29,6 +33,7 @@ type ScheduleConstructor interface {
 
 type Scheduler interface {
 	ScheduleRunner
+	ScheduleExecutor
 	ScheduleCloser
 }
 
@@ -39,6 +44,7 @@ type ScheduleManager interface {
 	UpdateSchedule(test *models.Test) error
 	AddSchedule(test *models.Test) error
 	RemoveSchedule(test *models.Test) error
+	ExecuteSchedule(test *models.Test)
 }
 
 type TestScheduleManager struct {
@@ -179,6 +185,15 @@ func (manager *TestScheduleManager) RemoveSchedule(test *models.Test) error {
 	return nil
 }
 
+func (manager *TestScheduleManager) ExecuteSchedule(test *models.Test) {
+	testScheduler, exist := manager.testSchedulers[test.Id]
+	if exist {
+		if err := testScheduler.Execute(); err != nil {
+			manager.errorChan <- err
+		}
+	}
+}
+
 func NewTestScheduleManager(testRepository repositories.TestRepository, testResultRepository repositories.TestResultRepository) (ScheduleManager, error) {
 	if rsvalid.IsZero(testRepository, testResultRepository) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Scheduler")
@@ -204,27 +219,34 @@ func (schedule *testScheduler) Run() error {
 	for {
 		select {
 		case <-ticker.C:
-			test := schedule.test
-			res, err := test.Execute()
-			if err != nil {
-				return err
-			}
-			rslog.Debugf("executed test:: id='%v'", test.Id)
-			schedule.resultChan <- &models.TestResult{
-				DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
-				Id:                     rsstr.NewUUID(),
-				TestId:                 test.Id,
-				IsSuccess:              test.Assertion.Assert(res),
-				StatusCode:             res.StatusCode,
-				Response:               res.Body,
-				ResponseTime:           res.ResponseTime,
-				TestedAt:               time.Now(),
+			if err := schedule.Execute(); err != nil {
+				return errors.WithStack(err)
 			}
 		case <-schedule.closeChan:
 			rslog.Debugf("test close:: \tid='%v'", schedule.test.Id)
 			return nil
 		}
 	}
+}
+
+func (schedule testScheduler) Execute() error {
+	test := schedule.test
+	res, err := test.Execute()
+	if err != nil {
+		return err
+	}
+	rslog.Debugf("executed test:: id='%v'", test.Id)
+	schedule.resultChan <- &models.TestResult{
+		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
+		Id:                     rsstr.NewUUID(),
+		TestId:                 test.Id,
+		IsSuccess:              test.Assertion.Assert(res),
+		StatusCode:             res.StatusCode,
+		Response:               res.Body,
+		ResponseTime:           res.ResponseTime,
+		TestedAt:               time.Now(),
+	}
+	return nil
 }
 
 func (schedule *testScheduler) Close() error {

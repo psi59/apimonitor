@@ -122,6 +122,7 @@ func main() {
 			v1OneTest.GET("", testHandler.GetTest)
 			v1OneTest.DELETE("", testHandler.DeleteTest)
 			v1OneTest.PUT("", testHandler.UpdateTest)
+			v1OneTest.GET("/execute", testHandler.ExecuteTest)
 			v1OneTest.GET("/results", testResultHandler.GetListByTest)
 		}
 	}

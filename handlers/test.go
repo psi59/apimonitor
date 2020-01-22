@@ -27,6 +27,7 @@ type TestHandler interface {
 	DeleteTest(c echo.Context) error
 	GetTestList(c echo.Context) error
 	UpdateTest(c echo.Context) error
+	ExecuteTest(c echo.Context) error
 }
 
 type TestHandlerImpl struct {
@@ -158,6 +159,17 @@ func (handler *TestHandlerImpl) UpdateTest(c echo.Context) error {
 		return err.GetErrFromLanguage(lang)
 	}
 
+	return ctx.JSON(http.StatusOK, nil)
+}
+
+func (handler *TestHandlerImpl) ExecuteTest(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	handler.testService.ExecuteTest(&models.Test{
+		Id: ctx.Param(TestIdParam),
+	})
 	return ctx.JSON(http.StatusOK, nil)
 }
 

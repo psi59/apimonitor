@@ -20,6 +20,7 @@ type TestService interface {
 	DeleteTestById(endpoint *models.Test) *amerr.ErrorWithLanguage
 	GetTestList(request models.TestListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
 	UpdateTestById(test *models.Test, request models.TestRequest) *amerr.ErrorWithLanguage
+	ExecuteTest(test *models.Test)
 }
 
 type TestServiceImpl struct {
@@ -166,6 +167,10 @@ func (service *TestServiceImpl) UpdateTestById(test *models.Test, request models
 	}
 
 	return nil
+}
+
+func (service *TestServiceImpl) ExecuteTest(test *models.Test) {
+	service.testScheduleManager.ExecuteSchedule(test)
 }
 
 func NewTestService(testRepository repositories.TestRepository, testScheduleManager ScheduleManager) (TestService, error) {
