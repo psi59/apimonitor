@@ -55,21 +55,6 @@ func main() {
 		rslog.Fatal(err)
 	}
 
-	webServiceService, err := services.NewWebServiceService(webServiceRepository)
-	if err != nil {
-		rslog.Fatal(err)
-	}
-
-	testService, err := services.NewTestService(testRepository)
-	if err != nil {
-		rslog.Fatal(err)
-	}
-
-	testResultService, err := services.NewTestResultService(testResultRepository)
-	if err != nil {
-		rslog.Fatal(err)
-	}
-
 	testSchedulerManager, err := services.NewTestScheduleManager(testRepository, testResultRepository)
 	if err != nil {
 		rslog.Fatal(err)
@@ -79,6 +64,21 @@ func main() {
 			rslog.Fatal(err)
 		}
 	}()
+
+	webServiceService, err := services.NewWebServiceService(webServiceRepository)
+	if err != nil {
+		rslog.Fatal(err)
+	}
+
+	testService, err := services.NewTestService(testRepository, testSchedulerManager)
+	if err != nil {
+		rslog.Fatal(err)
+	}
+
+	testResultService, err := services.NewTestResultService(testResultRepository)
+	if err != nil {
+		rslog.Fatal(err)
+	}
 
 	webServiceHandler, err := handlers.NewWebServiceHandler(webServiceService)
 	if err != nil {

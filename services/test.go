@@ -23,7 +23,8 @@ type TestService interface {
 }
 
 type TestServiceImpl struct {
-	testRepository repositories.TestRepository
+	testRepository      repositories.TestRepository
+	testScheduleManager ScheduleManager
 }
 
 func (service *TestServiceImpl) CreateTest(webService *models.WebService, request models.TestRequest) (*models.Test, *amerr.ErrorWithLanguage) {
@@ -48,6 +49,11 @@ func (service *TestServiceImpl) CreateTest(webService *models.WebService, reques
 			rslog.Error(err)
 			return nil, amerr.GetErrInternalServer()
 		}
+	}
+
+	if err := service.testScheduleManager.AddSchedule(test); err != nil {
+		rslog.Error(err)
+		return nil, amerr.GetErrInternalServer()
 	}
 
 	return test, nil
@@ -89,6 +95,11 @@ func (service *TestServiceImpl) DeleteTestById(test *models.Test) *amerr.ErrorWi
 	}
 
 	if err := service.testRepository.DeleteById(rsdb.GetConnection(), test); err != nil {
+		rslog.Error(err)
+		return amerr.GetErrInternalServer()
+	}
+
+	if err := service.testScheduleManager.RemoveSchedule(test); err != nil {
 		rslog.Error(err)
 		return amerr.GetErrInternalServer()
 	}
@@ -149,14 +160,20 @@ func (service *TestServiceImpl) UpdateTestById(test *models.Test, request models
 		}
 	}
 
+	if err := service.testScheduleManager.UpdateSchedule(test); err != nil {
+		rslog.Error(err)
+		return amerr.GetErrInternalServer()
+	}
+
 	return nil
 }
 
-func NewTestService(testRepository repositories.TestRepository) (TestService, error) {
-	if rsvalid.IsZero(testRepository) {
+func NewTestService(testRepository repositories.TestRepository, testScheduleManager ScheduleManager) (TestService, error) {
+	if rsvalid.IsZero(testRepository, testScheduleManager) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "TestService")
 	}
 	return &TestServiceImpl{
-		testRepository: testRepository,
+		testRepository:      testRepository,
+		testScheduleManager: testScheduleManager,
 	}, nil
 }

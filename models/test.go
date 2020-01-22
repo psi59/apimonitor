@@ -263,23 +263,23 @@ func (schedule *TestSchedule) UnmarshalJSON(data []byte) error {
 }
 
 func (schedule TestSchedule) GetDuration() time.Duration {
-	return 3 * time.Second
-	//switch schedule {
-	//case ScheduleOneMinute:
-	//	return 1 * time.Minute
-	//case ScheduleFiveMinute:
-	//	return 5 * time.Minute
-	//case ScheduleFifteenMinute:
-	//	return 15 * time.Minute
-	//case ScheduleThirtyMinute:
-	//	return 30 * time.Minute
-	//case ScheduleHourly:
-	//	return time.Hour
-	//case ScheduleDaily:
-	//	return 24 * time.Hour
-	//default:
-	//	return 0
-	//}
+	//return 3 * time.Second
+	switch schedule {
+	case ScheduleOneMinute:
+		return 1 * time.Minute
+	case ScheduleFiveMinute:
+		return 5 * time.Minute
+	case ScheduleFifteenMinute:
+		return 15 * time.Minute
+	case ScheduleThirtyMinute:
+		return 30 * time.Minute
+	case ScheduleHourly:
+		return time.Hour
+	case ScheduleDaily:
+		return 24 * time.Hour
+	default:
+		return 0
+	}
 }
 
 func (schedule TestSchedule) GetTicker() *time.Ticker {

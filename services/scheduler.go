@@ -36,6 +36,9 @@ type ScheduleManager interface {
 	ScheduleRunner
 	ScheduleConstructor
 	ScheduleCloser
+	UpdateSchedule(test *models.Test) error
+	AddSchedule(test *models.Test) error
+	RemoveSchedule(test *models.Test) error
 }
 
 type TestScheduleManager struct {
@@ -44,27 +47,27 @@ type TestScheduleManager struct {
 	testResultRepository repositories.TestResultRepository
 	resultChan           chan *models.TestResult
 	closeChan            chan bool
+	errorChan            chan error
 }
 
 func (manager *TestScheduleManager) Run() error {
 	rslog.Debug("Running WebServiceManager...")
-	errChan := make(chan error, 100)
 	for _, s := range manager.testSchedulers {
 		go func(s Scheduler, errChan chan<- error) {
 			if err := s.Run(); err != nil {
 				errChan <- err
 			}
-		}(s, errChan)
+		}(s, manager.errorChan)
 	}
 	for {
 		select {
-		case err := <-errChan:
+		case err := <-manager.errorChan:
 			rslog.Errorf("error='%v'", err)
 		// 	TODO: 에러 프린팅
 		case result := <-manager.resultChan:
 			rslog.Debugf("result='%+v'", result)
 			if err := manager.testResultRepository.Create(rsdb.GetConnection(), result); err != nil {
-				errChan <- err
+				manager.errorChan <- err
 			}
 		case <-manager.closeChan:
 			rslog.Debug("Closed TestScheduleManager")
@@ -123,6 +126,59 @@ func (manager *TestScheduleManager) Close() error {
 	return nil
 }
 
+func (manager *TestScheduleManager) UpdateSchedule(test *models.Test) error {
+	oldTestScheduler, exist := manager.testSchedulers[test.Id]
+	if !exist {
+		e := errors.Errorf("schedule not exist: '%s'", test.Id)
+		rslog.Error(e)
+		return e
+	}
+
+	if err := manager.addSchedule(test); err != nil {
+		rslog.Error(err)
+		return err
+	}
+
+	if err := oldTestScheduler.Close(); err != nil {
+		rslog.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func (manager *TestScheduleManager) AddSchedule(test *models.Test) error {
+	return manager.addSchedule(test)
+}
+
+func (manager *TestScheduleManager) addSchedule(test *models.Test) error {
+	newTestScheduler, err := NewTestScheduler(test, manager.resultChan)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	manager.testSchedulers[test.Id] = newTestScheduler
+	go func(s Scheduler, errChan chan<- error) {
+		if err := s.Run(); err != nil {
+			errChan <- err
+		}
+	}(newTestScheduler, manager.errorChan)
+	rslog.Debugf("Added test schedule: '%s'", test.Id)
+
+	return nil
+}
+
+func (manager *TestScheduleManager) RemoveSchedule(test *models.Test) error {
+	testScheduler, exist := manager.testSchedulers[test.Id]
+	if exist {
+		if err := testScheduler.Close(); err != nil {
+			return err
+		}
+		delete(manager.testSchedulers, test.Id)
+	}
+	return nil
+}
+
 func NewTestScheduleManager(testRepository repositories.TestRepository, testResultRepository repositories.TestResultRepository) (ScheduleManager, error) {
 	if rsvalid.IsZero(testRepository, testResultRepository) {
 		return nil, errors.Wrap(rserrors.ErrInvalidParameter, "Scheduler")
@@ -132,6 +188,7 @@ func NewTestScheduleManager(testRepository repositories.TestRepository, testResu
 		testRepository:       testRepository,
 		testResultRepository: testResultRepository,
 		resultChan:           make(chan *models.TestResult, 1000),
+		errorChan:            make(chan error, 100),
 	}, nil
 }
 
