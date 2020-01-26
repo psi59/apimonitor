@@ -1,0 +1,20 @@
+[
+  {
+    "httpRequest": {
+      "path": "/"
+    },
+    "httpResponse": {
+      "body": {
+        "test": "test"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "path": "/simpleSecond"
+    },
+    "httpResponse": {
+      "body": "some second response"
+    }
+  }
+]

@@ -20,7 +20,7 @@ type TestService interface {
 	DeleteTestById(endpoint *models.Test) *amerr.ErrorWithLanguage
 	GetTestList(request models.TestListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
 	UpdateTestById(test *models.Test, request models.TestRequest) *amerr.ErrorWithLanguage
-	ExecuteTest(test *models.Test)
+	ExecuteTest(test *models.Test) *amerr.ErrorWithLanguage
 }
 
 type TestServiceImpl struct {
@@ -169,8 +169,18 @@ func (service *TestServiceImpl) UpdateTestById(test *models.Test, request models
 	return nil
 }
 
-func (service *TestServiceImpl) ExecuteTest(test *models.Test) {
+func (service *TestServiceImpl) ExecuteTest(test *models.Test) *amerr.ErrorWithLanguage {
+	if err := service.testRepository.GetById(rsdb.GetConnection(), test); err != nil {
+		switch err {
+		case rsdb.ErrRecordNotFound:
+			return amerr.GetErrorsFromCode(amerr.ErrTestNotFound)
+		default:
+			rslog.Error(err)
+			return amerr.GetErrInternalServer()
+		}
+	}
 	service.testScheduleManager.ExecuteSchedule(test)
+	return nil
 }
 
 func NewTestService(testRepository repositories.TestRepository, testScheduleManager ScheduleManager) (TestService, error) {

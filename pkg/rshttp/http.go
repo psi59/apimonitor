@@ -36,6 +36,10 @@ const (
 	MIMEOctetStream           = "application/octet-stream"
 )
 
+const (
+	ErrUnsupportedMethod = rserrors.Error("Unsupported method")
+)
+
 var (
 	MIMEApplicationJSONCharsetUTF8       = appendUTF8IntoMIME(MIMEApplicationJSON)
 	MIMEApplicationJavaScriptCharsetUTF8 = appendUTF8IntoMIME(MIMEApplicationJavaScript)

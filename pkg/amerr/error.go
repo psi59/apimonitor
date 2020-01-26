@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	ErrBadRequest = 400
+	ErrBadRequest        = 400
+	ErrUnsupportedMethod = 40001
 
 	ErrNotFound           = 404
 	ErrWebServiceNotFound = 4041
@@ -29,6 +30,10 @@ var (
 		),
 		ErrConflict: newErrorWithLanguage(
 			newError(http.StatusConflict, ErrConflict, "중복된 요청입니다."),
+		),
+
+		ErrUnsupportedMethod: newErrorWithLanguage(
+			newError(http.StatusBadRequest, ErrUnsupportedMethod, "지원하지 않는 메소드 입니다."),
 		),
 
 		ErrNotFound: newErrorWithLanguage(

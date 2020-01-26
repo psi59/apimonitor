@@ -109,6 +109,9 @@ func (test Test) ToHttpRequest(webService *WebService) (*rshttp.Request, error) 
 
 	request := rshttp.Request{
 		Method:  test.Method.String(),
+		Header:  test.Parameters.Header,
+		Query:   test.Parameters.Query,
+		Body:    test.Parameters.Body,
 		RawUrl:  rawUrl.String(),
 		Timeout: test.Timeout,
 	}
@@ -289,7 +292,7 @@ func (schedule TestSchedule) GetTicker() *time.Ticker {
 type Parameters struct {
 	Auth   map[string]interface{} `json:"auth"`
 	Header map[string]string      `json:"header"`
-	Query  map[string]string      `json:"query"`
+	Query  map[string]interface{} `json:"query"`
 	Body   map[string]interface{} `json:"body"`
 }
 

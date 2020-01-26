@@ -12,7 +12,7 @@ import (
 	"github.com/realsangil/apimonitor/pkg/rsvalid"
 )
 
-var regexExtractHost = regexp.MustCompile(`^(?:(?:(https?)?(?:\:?\/\/))|(?:\/\/))?(((?:\w{1,100}\.)?\w{2,300}\.\w{2,100})(\.\w{2,100})*)`)
+var regexExtractHost = regexp.MustCompile(`^(?:(?:(https?)?(?:\:?\/\/))|(?:\/\/))?((localhost:(\d+))|((?:\w{1,100}\.)?\w{2,300}\.\w{2,100})(\.\w{2,100})*)`)
 
 type WebService struct {
 	rsmodels.DefaultValidateChecker

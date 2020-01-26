@@ -167,9 +167,12 @@ func (handler *TestHandlerImpl) ExecuteTest(c echo.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	handler.testService.ExecuteTest(&models.Test{
+	lang := ctx.Language()
+	if err := handler.testService.ExecuteTest(&models.Test{
 		Id: ctx.Param(TestIdParam),
-	})
+	}); err != nil {
+		return err.GetErrFromLanguage(lang)
+	}
 	return ctx.JSON(http.StatusOK, nil)
 }
 
