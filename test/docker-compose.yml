@@ -1,0 +1,10 @@
+version: '3.3'
+services:
+  mockserver:
+    image: mockserver/mockserver
+    ports:
+      - '1080:1080'
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/mockServer.json
+    volumes:
+      - /Users/realsangil/Documents/workspace/realsangil/apimonitor/test/mockServer.json:/config/mockServer.json

@@ -1,9 +1,27 @@
 [
   {
     "httpRequest": {
+      "method": "POST",
+      "path": "/login",
+      "body": {
+        "username": "foo",
+        "password": "bar"
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": {
+        "username": "foo",
+        "description": "hello"
+      }
+    }
+  },
+  {
+    "httpRequest": {
       "path": "/"
     },
     "httpResponse": {
+      "statusCode": 400,
       "body": {
         "test": "test"
       }
