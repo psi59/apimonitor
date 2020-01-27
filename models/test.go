@@ -45,6 +45,7 @@ func (test *Test) UpdateFromRequest(request TestRequest) error {
 	test.Description = request.Description
 	test.Parameters = request.Parameters
 	test.Schedule = request.Schedule
+	test.Assertion = request.Assertion
 	test.Timeout = rshttp.Timeout(request.Timeout)
 	test.ModifiedAt = time.Now()
 	return test.Validate()
@@ -214,7 +215,7 @@ type TestListRequest struct {
 }
 
 type AssertionV1 struct {
-	StatusCode int
+	StatusCode int `json:"statusCode"`
 }
 
 func (assertion *AssertionV1) Scan(src interface{}) error {

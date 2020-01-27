@@ -68,5 +68,5 @@ func execute(fn requestFunc, request *Request) (*Response, error) {
 type Response struct {
 	StatusCode   int
 	ResponseTime int64
-	Body         interface{}
+	Body         string
 }

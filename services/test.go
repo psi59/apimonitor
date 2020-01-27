@@ -51,6 +51,7 @@ func (service *TestServiceImpl) CreateTest(webService *models.WebService, reques
 			return nil, amerr.GetErrInternalServer()
 		}
 	}
+	test.WebService = webService
 
 	if err := service.testScheduleManager.AddSchedule(test); err != nil {
 		rslog.Error(err)

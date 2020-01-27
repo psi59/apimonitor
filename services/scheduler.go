@@ -229,10 +229,11 @@ func (schedule *testScheduler) Run() error {
 	}
 }
 
-func (schedule testScheduler) Execute() error {
+func (schedule *testScheduler) Execute() error {
 	test := schedule.test
 	res, err := test.Execute()
 	if err != nil {
+		rslog.Error(err)
 		return err
 	}
 	rslog.Debugf("executed test:: id='%v'", test.Id)

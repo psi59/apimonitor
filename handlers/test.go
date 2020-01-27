@@ -43,7 +43,7 @@ func (handler *TestHandlerImpl) CreateTest(c echo.Context) error {
 
 	lang := ctx.Language()
 
-	webServiceId := ctx.QueryParam(WebServiceIdParam)
+	webServiceId := ctx.Param(WebServiceIdParam)
 	webService := &models.WebService{Id: webServiceId}
 	if err := handler.webServiceService.GetWebServiceById(webService); err != nil {
 		return err.GetErrFromLanguage(lang)
