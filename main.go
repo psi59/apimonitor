@@ -65,7 +65,7 @@ func main() {
 		}
 	}()
 
-	webServiceService, err := services.NewWebServiceService(webServiceRepository)
+	webServiceService, err := services.NewWebServiceService(webServiceRepository, testRepository, testSchedulerManager)
 	if err != nil {
 		rslog.Fatal(err)
 	}
@@ -108,6 +108,7 @@ func main() {
 				v1OneWebService.DELETE("", webServiceHandler.DeleteWebServiceById)
 				v1OneWebService.PUT("", webServiceHandler.UpdateWebServiceById)
 				v1OneWebService.GET("/results", testResultHandler.GetListByWebService)
+				v1OneWebService.GET("/execute", webServiceHandler.ExecuteTests)
 
 				v1Test := v1OneWebService.Group("/tests")
 				{

@@ -17,10 +17,13 @@ type WebServiceService interface {
 	DeleteWebServiceById(webService *models.WebService) *amerr.ErrorWithLanguage
 	UpdateWebServiceById(webService *models.WebService, request models.WebServiceRequest) *amerr.ErrorWithLanguage
 	GetWebServiceList(request models.WebServiceListRequest) (*rsmodels.PaginatedList, *amerr.ErrorWithLanguage)
+	ExecuteTests(webService *models.WebService) *amerr.ErrorWithLanguage
 }
 
 type WebServiceServiceImpl struct {
 	webServiceRepository repositories.WebServiceRepository
+	testRepository       repositories.TestRepository
+	testScheduleManager  ScheduleManager
 }
 
 func (service *WebServiceServiceImpl) CreateWebService(request models.WebServiceRequest) (*models.WebService, *amerr.ErrorWithLanguage) {
@@ -142,11 +145,39 @@ func (service *WebServiceServiceImpl) GetWebServiceList(request models.WebServic
 	}, nil
 }
 
-func NewWebServiceService(webServiceRepository repositories.WebServiceRepository) (WebServiceService, error) {
-	if rsvalid.IsZero(webServiceRepository) {
+func (service *WebServiceServiceImpl) ExecuteTests(webService *models.WebService) *amerr.ErrorWithLanguage {
+	if err := service.GetWebServiceById(webService); err != nil {
+		return err
+	}
+	tests := make([]*models.Test, 0)
+	filter := rsdb.ListFilter{
+		Page:    0,
+		NumItem: 0,
+		Conditions: map[string]interface{}{
+			"web_service_id": webService.Id,
+		},
+	}
+	if _, err := service.testRepository.GetList(rsdb.GetConnection(), &tests, filter, nil); err != nil {
+		rslog.Error(err)
+		return amerr.GetErrInternalServer()
+	}
+	for _, test := range tests {
+		service.testScheduleManager.ExecuteSchedule(test)
+	}
+	return nil
+}
+
+func NewWebServiceService(
+	webServiceRepository repositories.WebServiceRepository,
+	testRepository repositories.TestRepository,
+	testScheduleManager ScheduleManager,
+) (WebServiceService, error) {
+	if rsvalid.IsZero(webServiceRepository, testRepository, testScheduleManager) {
 		return nil, rserrors.ErrInvalidParameter
 	}
 	return &WebServiceServiceImpl{
 		webServiceRepository: webServiceRepository,
+		testRepository:       testRepository,
+		testScheduleManager:  testScheduleManager,
 	}, nil
 }

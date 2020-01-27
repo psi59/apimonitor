@@ -25,6 +25,7 @@ type WebServiceHandler interface {
 	DeleteWebServiceById(c echo.Context) error
 	UpdateWebServiceById(c echo.Context) error
 	GetWebServiceList(c echo.Context) error
+	ExecuteTests(c echo.Context) error
 }
 
 type WebServiceHandlerImpl struct {
@@ -143,6 +144,26 @@ func (handler *WebServiceHandlerImpl) GetWebServiceList(c echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, list)
+}
+
+func (handler *WebServiceHandlerImpl) ExecuteTests(c echo.Context) error {
+	ctx, err := middlewares.ConvertToCustomContext(c)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lang := ctx.Language()
+
+	webService := &models.WebService{
+		Id: ctx.Param(WebServiceIdParam),
+	}
+
+	if err := handler.webServiceService.ExecuteTests(webService); err != nil {
+		rslog.Error(err)
+		return err.GetErrFromLanguage(lang)
+	}
+
+	return ctx.JSON(http.StatusOK, nil)
 }
 
 func NewWebServiceHandler(webServiceService services.WebServiceService) (WebServiceHandler, error) {
