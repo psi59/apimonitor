@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  server:
+    image: sangil/apimonitor-server:200127
+    container_name: apimonitor.server
+    volumes:
+      - ./config/server_config.yaml:/root/.apimonitor/config/server_config.yaml
+    ports:
+      - 1323:1323
+    depends_on:
+      - db
+    networks:
+      - apimonitor
+
+  web:
+    image: sangil/apimonitor-web:200128
+    container_name: apimonitor.web
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    networks:
+      - apimonitor
+
+  db:
+    image: mariadb
+    container_name: apimonitor.db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    ports:
+      - 5306:3306
+    networks:
+      - apimonitor
+
+networks:
+  apimonitor:
