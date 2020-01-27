@@ -33,6 +33,7 @@ type Test struct {
 	Schedule     TestSchedule        `json:"schedule" gorm:"Column:schedule;Type:VARCHAR(5)"`
 	Timeout      rshttp.Timeout      `json:"timeout"`
 	Assertion    AssertionV1         `json:"assertion" gorm:"Type:JSON"`
+	Alerts       WebHookAlerts       `json:"alerts" gorm:"Column:alerts;Type:JSON"`
 	CreatedAt    time.Time           `json:"createdAt"`
 	ModifiedAt   time.Time           `json:"modifiedAt"`
 }
@@ -46,6 +47,7 @@ func (test *Test) UpdateFromRequest(request TestRequest) error {
 	test.Parameters = request.Parameters
 	test.Schedule = request.Schedule
 	test.Assertion = request.Assertion
+	test.Alerts = request.Alerts
 	test.Timeout = rshttp.Timeout(request.Timeout)
 	test.ModifiedAt = time.Now()
 	return test.Validate()
@@ -145,6 +147,7 @@ type TestRequest struct {
 	Parameters  Parameters          `json:"parameters"`
 	Schedule    TestSchedule        `json:"schedule"`
 	Assertion   AssertionV1         `json:"assertion"`
+	Alerts      WebHookAlerts       `json:"alerts"`
 	Timeout     int                 `json:"timeout"`
 }
 

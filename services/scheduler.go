@@ -237,7 +237,7 @@ func (schedule *testScheduler) Execute() error {
 		return err
 	}
 	rslog.Debugf("executed test:: id='%v'", test.Id)
-	schedule.resultChan <- &models.TestResult{
+	result := &models.TestResult{
 		DefaultValidateChecker: rsmodels.ValidatedDefaultValidateChecker,
 		Id:                     rsstr.NewUUID(),
 		TestId:                 test.Id,
@@ -247,6 +247,15 @@ func (schedule *testScheduler) Execute() error {
 		ResponseTime:           res.ResponseTime,
 		TestedAt:               time.Now(),
 	}
+	if !result.IsSuccess {
+		errMessage := result.ErrorMessage()
+		for _, alert := range test.Alerts {
+			if err := alert.Alert(errMessage); err != nil {
+				rslog.Error(err)
+			}
+		}
+	}
+	schedule.resultChan <- result
 	return nil
 }
 

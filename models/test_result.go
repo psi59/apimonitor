@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -28,6 +29,15 @@ func (result TestResult) Validate() error {
 	}
 	result.SetValidated()
 	return nil
+}
+
+func (result TestResult) ErrorMessage() string {
+	return fmt.Sprintf(
+		"resultId: '%s'\nstatusCode: '%d'\nTestDate: '%v'",
+		result.Id,
+		result.StatusCode,
+		result.TestedAt,
+	)
 }
 
 func (result TestResult) TableName() string {
