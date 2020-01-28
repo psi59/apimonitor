@@ -19,6 +19,8 @@ services:
       - 3000:3000
     depends_on:
       - db
+    environment:
+      AM_API_URL: 'http://localhost:1323/v1'
     networks:
       - apimonitor
 

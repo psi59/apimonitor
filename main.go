@@ -36,7 +36,10 @@ func main() {
 		middlewares.ReplaceContextMiddleware,
 		middleware.Logger(),
 		middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"http://localhost:3001", "http://localhost:3000"},
+			AllowOrigins: []string{
+				"http://localhost:3001",
+				"http://localhost:3000",
+			},
 			AllowCredentials: true,
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		}),
