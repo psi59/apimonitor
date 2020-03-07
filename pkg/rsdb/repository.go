@@ -78,7 +78,7 @@ func (repo *DefaultRepository) DeleteById(tx Connection, id rsmodels.ValidatedOb
 }
 
 func (repo *DefaultRepository) GetById(tx Connection, id rsmodels.ValidatedObject) error {
-	err := tx.Conn().First(id).Error
+	err := tx.Conn().Take(id).Error
 	return HandleSQLError(err)
 }
 
