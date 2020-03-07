@@ -20,7 +20,7 @@ type TestRepositoryImpl struct {
 }
 
 func (repository *TestRepositoryImpl) GetById(conn rsdb.Connection, test rsmodels.ValidatedObject) error {
-	err := conn.Conn().Preload("WebService").First(test).Error
+	err := conn.Conn().Preload("WebService").Take(test).Error
 	return rsdb.HandleSQLError(err)
 }
 
